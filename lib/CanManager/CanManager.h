@@ -17,11 +17,8 @@ class CanManager {
     uint8_t data[8] = {0};
   };
 
-  CanManager(RawCAN& can) : can(can) {
-    can.frequency(500E3);
-    can.attach(callback(this, &CanManager::receive), RawCAN::RxIrq);
-  }
-
+  CanManager(RawCAN& can);
+  void begin();
   void receive();
   void send(Message msg);
   void registerCallback(Callback<void(Message)> callback, uint32_t hardId);
