@@ -25,9 +25,7 @@ void Sensor::managerCallback(CanManager::Message msg) {
       break;
 
     case 6:
-      uint8_t r = *(float*)(msg.data + 4);
       state = (uint8_t) * (float*)(msg.data + 4);
-      asm("nop");
       break;
   }
 }
