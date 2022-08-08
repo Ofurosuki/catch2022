@@ -4,6 +4,9 @@
 #include <Servo.h>
 #include <Solenoid.h>
 #include <mbed.h>
+#include <config.h>
+#include <stepper.h>
+
 
 asm(".global _printf_float");  // float出力用
 
@@ -20,6 +23,11 @@ int main() {
   printf("start\n");
   motor.setMode(Motor::Mode::Position);
   motor.drivePosition(4);
+
+  Stepper stepper0(DIR0,STP0);
+  stepper0.set_config(3,50); //set acceleration and  max velocity
+  stepper0.ticker.attach(callback(&stepper0,&Stepper::step_ctl),100us); //attach
+  stepper0.step(20,-1000);  //rotate stepper (initial frequency and target step )  
 
   while (true) {
     printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
