@@ -24,9 +24,10 @@ int main() {
   manager.begin();
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
   while (true) {
-    printf("%d, %d, %d, %d\n", gamepad.getAxis(0), gamepad.getAxis(1),
+    printf("%d, %d, %d, %d", gamepad.getAxis(0), gamepad.getAxis(1),
            gamepad.getAxis(2), gamepad.getAxis(3));
-    printf("%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d", gamepad.getButton(0),
+    printf(":%d, %d", gamepad.getHat(0), gamepad.getHat(1));
+    printf(":%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d\n", gamepad.getButton(0),
            gamepad.getButton(1), gamepad.getButton(2), gamepad.getButton(3),
            gamepad.getButton(4), gamepad.getButton(5), gamepad.getButton(6),
            gamepad.getButton(7), gamepad.getButton(8), gamepad.getButton(9),
