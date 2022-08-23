@@ -7,10 +7,11 @@ class Stepper {
   int cnt;
   volatile int stepcycle;
 
-  bool can_velocity_triangle;
-  int target_step;
-  int stp_counter;  // local なステップ合計数 一動作終了につきリセット
-  int global_stp_counter;  // global　なステップ合計数　試合開始からずっと保持　物理的位置と1対1対応
+  bool can_velocity_triangle = 0;
+  int target_step = 0;
+  int stp_counter = 0;  // local なステップ合計数 一動作終了につきリセット
+  int global_stp_counter =
+      0;  // global　なステップ合計数　試合開始からずっと保持　物理的位置と1対1対応
 
   float freq;
   int freq_min;
@@ -24,8 +25,9 @@ class Stepper {
   DigitalOut _dir;
   DigitalOut _stp;
 
- public:
   Ticker ticker;
+
+ public:
   bool is_cw();
   void step_ctl();
   int get_stp_counter();
