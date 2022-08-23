@@ -16,6 +16,8 @@ CanManager manager(can);
 Motor motor(0x08, manager);
 PC pcConnector;
 Gamepad gamepad;
+Sensor sensor(0x04, manager);
+Solenoid solenoid(0x03, manager);
 
 DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
