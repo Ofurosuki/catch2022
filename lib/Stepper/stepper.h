@@ -6,7 +6,8 @@
 class Stepper {
   int cnt;
   volatile int stepcycle;
-
+  protected:
+  
   bool can_velocity_triangle = 0;
   int target_step = 0;
   int stp_counter = 0;  // local なステップ合計数 一動作終了につきリセット
