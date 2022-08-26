@@ -4,17 +4,18 @@
 #include "mbed.h"
 
 class Stepper {
+ protected:
   int cnt;
   volatile int stepcycle;
-  protected:
-  
+
   bool can_velocity_triangle = 0;
   int target_step = 0;
   int stp_counter = 0;  // local なステップ合計数 一動作終了につきリセット
-  int global_stp_counter =
-      0;  // global　なステップ合計数　試合開始からずっと保持　物理的位置と1対1対応
+  int global_stp_counter = 0;
+  // global　なステップ合計数　試合開始からずっと保持　物理的位置と1対1対応
 
   float freq;
+  float freq_ini;
   int freq_min;
   int freq_max;
   int freq_diff;
@@ -36,7 +37,7 @@ class Stepper {
   int get_stepcycle();
   int get_freq();
   void step(int freq_ini, int target_step);
-  void set_config(int d_step_cycle, int minimum_stepcycle);
+  void set_config(int freq_difference, int freq_maxium, float ini_freq = 0);
   Stepper(PinName dir, PinName stp);
 };
 

@@ -1,5 +1,5 @@
 #include <mbed.h>
-#define STP0 LED1 //ぐれー PB_15
+#define STP0 LED1  //ぐれー PB_15
 #define STP1 PB_3
 #define STP2 PB_0
 #define STP3 PA_4

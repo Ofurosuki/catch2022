@@ -25,12 +25,14 @@ int main() {
   motor.drivePosition(4);
 
   rotate_stepper stepper0(DIR0, STP0);
-  stepper0.set_config(3, 50);  // set acceleration and  max velocity  
-  stepper0.step(20,-1000);  // rotate stepper (initial frequency and target step )　　回すだけの関数もある
+  stepper0.set_config(3, 50, 20);  // set acceleration and  max velocity
+  stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
+                             // step )回すだけの関数もある
 
-  stepper0.set_theta_config(0,0.5); //起動時の角度を指定、1ステップあたりの角度を指定
+  stepper0.set_theta_config(0, 0.5);
+  //起動時の角度を指定、1ステップあたりの角度を指定
 
-  stepper0.rotate(20,50.0);   //rotate stepper by angle (initial frequency and angle)
+  stepper0.rotate(50.2);  // rotate stepper by angle
 
   while (true) {
     printf("pos: %f, %f%%\n", motor.getCurrentPosition(),

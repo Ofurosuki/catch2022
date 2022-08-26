@@ -77,8 +77,8 @@ void Stepper::step_ctl() {  //割り込み関数  //call_interval micro second
         global_stp_counter--;
       }
     } else {
-      cnt +=
-          call_interval;  // 100usごとに呼び出し、cntは時間と同じスケールで加算される
+      cnt += call_interval;
+      // 100usごとに呼び出し、cntは時間と同じスケールで加算される
     }
     if (target_step <= stp_counter) {
       stepcycle = 0;
@@ -89,7 +89,8 @@ void Stepper::step_ctl() {  //割り込み関数  //call_interval micro second
   }
 }
 
-void Stepper::set_config(int freq_difference, int freq_maxium) {
+void Stepper::set_config(int freq_difference, int freq_maxium, float ini_freq) {
   freq_diff = freq_difference;
   freq_max = freq_maxium;
+  freq_ini = ini_freq;
 }
