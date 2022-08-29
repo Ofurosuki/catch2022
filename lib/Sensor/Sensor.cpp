@@ -1,10 +1,5 @@
 #include "Sensor.h"
 
-Sensor::Sensor(uint16_t hardId, CanManager& manager)
-    : hardId(hardId), manager(manager) {
-  manager.registerCallback(callback(this, &Sensor::managerCallback), hardId);
-}
-
 void Sensor::registerCallback(uint8_t sensorNum,
                               Callback<void(uint8_t, bool)> callback) {
   callbacks[sensorNum] = callback;

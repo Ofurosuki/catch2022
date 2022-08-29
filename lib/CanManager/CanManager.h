@@ -18,10 +18,17 @@ class CanManager {
   };
 
   CanManager(RawCAN& can);
+
+  // main関数の最初で呼び出すこと
   void begin();
-  void receive();
+
+  // CANバスに値を送る
   void send(Message msg);
-  void registerCallback(Callback<void(Message)> callback, uint32_t hardId);
+  // 値を受信したときに呼び出すコールバック関数を登録する
+  void registerCallback(uint32_t hardId, Callback<void(Message)> callback);
+
+  // RawCANから呼び出されるメソッド。呼び出さないこと
+  void receive();
 
  private:
   RawCAN& can;
