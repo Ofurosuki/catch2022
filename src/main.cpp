@@ -49,21 +49,6 @@ int main() {
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
   rotate_stepper stepper0(DIR0, STP0);
 
-  stepper0.set_config(50, 1000, 100);  // set acceleration and  max velocity
-  // stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
-  //  step )回すだけの関数もある
-
-  stepper0.set_theta_config(0, 0.557);
-  //起動時の角度を指定、1ステップあたりの角度を指定
-  // while(button){}
-  // stepper0.rotate(2000);
-  while (button) {
-  }
-  // stepper0.step(100,-2000);
-  stepper0.rotate_vel(600);
-
-  // stepper0.rotate_vel(0);
-
   while (true) {
     printf("progresscnt:%f\n", stepper0.progress_cnt());
     printf("%d, %d, %d, %d", gamepad.getAxis(0), gamepad.getAxis(1),
@@ -86,8 +71,10 @@ int main() {
      ↓    ↓
     */
     //以下でステッパーを動かすためのswitch文の条件を決める
-
     const float DCVelocity = 10;
+    int StepVel1 = (gamepad.getAxis(1)) * 5;
+    int StepVel2 = (gamepad.getAxis(2)) * 5;
+    int StepVel3 = (gamepad.getAxis(3)) * 5;
     if (abs(gamepad.getAxis(0)) >= 10) {
       // Dead zone
       // stepXを動かす
@@ -99,30 +86,39 @@ int main() {
     } else if (abs(gamepad.getAxis(1)) >= 10) {
       // Dead zone
       // stepシータを動かす
+      stepper0.rotate_vel(StepVel1);
       if (abs(joyDeg0) >= (M_PI / 12) * 5 && abs(joyDeg0) <= (M_PI / 12) * 7) {
         // stepθを+に動かす
         // gamepad.Axis(1)の値はマイナスなので正負入れ替えたほうがいいかも
+        stepper0.rotate_vel(StepVel1);
       }
     } else {
       // stepper止める
+      stepper0.rotate_vel(0);
     }
-
-    if (abs(gamepad.getAxis(2)) >= 10) {
-      // Dead zone
-      // stepRを動かす
-      if (abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) {
-        // stepRを動かす
-      }
-    } else if (abs(gamepad.getAxis(3)) >= 10) {
-      // Dead zone
-      // step上下を動かす
-      if (abs(joyDeg1) >= (M_PI / 12) * 5 && abs(joyDeg1) <= (M_PI / 12) * 7) {
-        // step上下に動かす
-      }
-    } else {
-      // stepper止める
-    }
-
+    /*
+        if (abs(gamepad.getAxis(2)) >= 10) {
+          // Dead zone
+          // stepRを動かす
+          stepper0.rotate_vel(StepVel2);
+          if (abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) {
+            // stepRを動かす
+            stepper0.rotate_vel(StepVel2);
+          }
+        } else if (abs(gamepad.getAxis(3)) >= 10) {
+          // Dead zone
+          // step上下を動かす
+          stepper0.rotate_vel(StepVel3);
+          if (abs(joyDeg1) >= (M_PI / 12) * 5 && abs(joyDeg1) <= (M_PI / 12) *
+       7) {
+            // step上下に動かす
+            stepper0.rotate_vel(StepVel3));
+          }
+        } else {
+          // stepper止める
+          stepper0.rotate_vel(0);
+        }
+    */
     /*
       while (true) {
         printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
