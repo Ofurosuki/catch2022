@@ -10,9 +10,9 @@ void PC::registerCallback(uint8_t id,
 }
 
 void PC::parse(uint8_t* data, size_t size) {
-  uint8_t nextZero = data[0];
+  uint8_t nextZero = data[0]; //unit8_t 1bytes or 8bits 0~255
   for (size_t i = 1; i < size; i++) {
-    nextZero--;
+    nextZero--; //-- 変数の値を1減らす
     if (nextZero == 0) {
       nextZero = data[i];
       data[i] = 0;

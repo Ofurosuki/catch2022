@@ -1,4 +1,4 @@
-#include "Gamepad.h"
+#include "Gamepad.h"  //PC.cpp or PC.hを経由してゲームパッドから受信
 
 int Gamepad::getAxis(uint8_t num) {
   if (num < 4) return axis[num];
