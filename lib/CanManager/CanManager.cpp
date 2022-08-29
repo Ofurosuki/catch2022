@@ -25,7 +25,7 @@ void CanManager::send(Message msg) {
   can.write(canMsg);
 }
 
-void CanManager::registerCallback(Callback<void(Message)> callback,
-                                  uint32_t hardId) {
+void CanManager::registerCallback(uint32_t hardId,
+                                  Callback<void(Message)> callback) {
   callbacks[hardId] = callback;
 }
