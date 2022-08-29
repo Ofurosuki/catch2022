@@ -11,11 +11,15 @@
 
 asm(".global _printf_float");  // float出力用
 
-UnbufferedSerial pc(USBTX, USBRX, 115200);
+UnbufferedSerial pc(USBTX, USBRX);
 
 RawCAN can(PA_11, PA_12, 500E3);
 CanManager manager(can);
-Motor motor(0x08, manager);
+Motor motor(0x01, manager);
+Servo servo(0x02, manager);
+Solenoid solenoid(0x03, manager);
+Sensor sensor(0x04, manager);
+
 PC pcConnector;
 Gamepad gamepad;
 
