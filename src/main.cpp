@@ -8,6 +8,8 @@
 #include <config.h>
 #include <math.h>
 #include <mbed.h>
+#include <stepper.h>
+#include <stepper_rotate.h>
 
 asm(".global _printf_float");  // float出力用
 
@@ -45,7 +47,25 @@ void getDegree(int xAxis0, int yAxis0, int xAxis1, int yAxis1) {
 int main() {
   manager.begin();
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  rotate_stepper stepper0(DIR0, STP0);
+
+  stepper0.set_config(50, 1000, 100);  // set acceleration and  max velocity
+  // stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
+  //  step )回すだけの関数もある
+
+  stepper0.set_theta_config(0, 0.557);
+  //起動時の角度を指定、1ステップあたりの角度を指定
+  // while(button){}
+  // stepper0.rotate(2000);
+  while (button) {
+  }
+  // stepper0.step(100,-2000);
+  stepper0.rotate_vel(600);
+
+  // stepper0.rotate_vel(0);
+
   while (true) {
+    printf("progresscnt:%f\n", stepper0.progress_cnt());
     printf("%d, %d, %d, %d", gamepad.getAxis(0), gamepad.getAxis(1),
            gamepad.getAxis(2), gamepad.getAxis(3));
     printf(":%d, %d", gamepad.getHat(0), gamepad.getHat(1));
@@ -102,6 +122,12 @@ int main() {
     } else {
       // stepper止める
     }
+
+    /*
+      while (true) {
+        printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
+               motor.getPositionProgress() * 100);
+      } */
   }
 
   //サーボモーターを動かす
