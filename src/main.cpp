@@ -5,9 +5,9 @@
 #include <Sensor.h>
 #include <Servo.h>
 #include <Solenoid.h>
+#include <config.h>
 #include <math.h>
 #include <mbed.h>
-#include <config.h>
 
 asm(".global _printf_float");  // float出力用
 
@@ -57,21 +57,24 @@ int main() {
            gamepad.getButton(13), gamepad.getButton(14), gamepad.getButton(15),
            gamepad.getButton(16), gamepad.getButton(17));
     ThisThread::sleep_for(50ms);
-                                                                                                        
+
     /*
     [0]  [1]
      θ   上下
      ↑    ↑
-    ← →x ←  →φ
+    ← →x ←  →R
      ↓    ↓
     */
     //以下でステッパーを動かすためのswitch文の条件を決める
 
+    const float DCVelocity = 10;
     if (abs(gamepad.getAxis(0)) >= 10) {
       // Dead zone
       // stepXを動かす
+      motor.driveVelocity(DCVelocity);
       if (abs(joyDeg0) <= M_PI / 12 || abs(joyDeg0) >= (M_PI / 12) * 11) {
         // stepxを動かす
+        motor.driveVelocity(DCVelocity);
       }
     } else if (abs(gamepad.getAxis(1)) >= 10) {
       // Dead zone
@@ -86,20 +89,32 @@ int main() {
 
     if (abs(gamepad.getAxis(2)) >= 10) {
       // Dead zone
-      // stepXを動かす
+      // stepRを動かす
       if (abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) {
-        // stepxを動かす
+        // stepRを動かす
       }
     } else if (abs(gamepad.getAxis(3)) >= 10) {
       // Dead zone
-      // stepシータを動かす
+      // step上下を動かす
       if (abs(joyDeg1) >= (M_PI / 12) * 5 && abs(joyDeg1) <= (M_PI / 12) * 7) {
-        // stepθを+に動かす
-        // gamepad.Axis(1)の値はマイナスなので正負入れ替えたほうがいいかも
+        // step上下に動かす
       }
     } else {
       // stepper止める
     }
   }
 
+  //サーボモーターを動かす
+  const float ServoVelocity = 5;
+  while (gamepad.getButton(4) == 1) {
+    //反時計回り
+    //サーボの角度＝サーボの角度+5°
+    //みたいな感じで単発押しと長押しで角度調整できるようにする。
+    servo.setVelocity(-ServoVelocity);
+  }
+
+  while (gamepad.getButton(5) == 1) {
+    //時計回り
+    servo.setVelocity(ServoVelocity);
+  }
 }
