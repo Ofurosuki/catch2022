@@ -28,7 +28,7 @@ void rotate_stepper::rotate_vel(int vel) {
   if (vel >= 0) {
     step(vel, INT_MAX);
   } else {
-    step(vel, -INT_MAX);
+    step(-vel, -INT_MAX);
   }
   if (vel == 0) {
     stepcycle = 0;
