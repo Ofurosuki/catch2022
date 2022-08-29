@@ -5,7 +5,10 @@
 #include <Sensor.h>
 #include <Servo.h>
 #include <Solenoid.h>
+#include <config.h>
 #include <mbed.h>
+#include <stepper.h>
+#include <stepper_rotate.h>
 
 asm(".global _printf_float");  // float出力用
 
@@ -27,17 +30,30 @@ DigitalIn button(BUTTON1);
 int main() {
   manager.begin();
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
-  while (true) {
-    printf("%d, %d, %d, %d", gamepad.getAxis(0), gamepad.getAxis(1),
-           gamepad.getAxis(2), gamepad.getAxis(3));
-    printf(":%d, %d", gamepad.getHat(0), gamepad.getHat(1));
-    printf(":%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d\n", gamepad.getButton(0),
-           gamepad.getButton(1), gamepad.getButton(2), gamepad.getButton(3),
-           gamepad.getButton(4), gamepad.getButton(5), gamepad.getButton(6),
-           gamepad.getButton(7), gamepad.getButton(8), gamepad.getButton(9),
-           gamepad.getButton(10), gamepad.getButton(11), gamepad.getButton(12),
-           gamepad.getButton(13), gamepad.getButton(14), gamepad.getButton(15),
-           gamepad.getButton(16), gamepad.getButton(17));
-    ThisThread::sleep_for(50ms);
+  rotate_stepper stepper0(DIR0, STP0);
+
+  stepper0.set_config(50, 1000, 100);  // set acceleration and  max velocity
+  // stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
+  //  step )回すだけの関数もある
+
+  stepper0.set_theta_config(0, 0.557);
+  //起動時の角度を指定、1ステップあたりの角度を指定
+  // while(button){}
+  // stepper0.rotate(2000);
+  while (button) {
   }
+  // stepper0.step(100,-2000);
+  stepper0.rotate_vel(600);
+
+  // stepper0.rotate_vel(0);
+
+  while (true) {
+    printf("progresscnt:%f\n", stepper0.progress_cnt());
+  }
+
+  /*
+    while (true) {
+      printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
+             motor.getPositionProgress() * 100);
+    } */
 }
