@@ -13,6 +13,8 @@ class rotate_stepper : public Stepper {
   void set_theta_config(float theta_0, float theta_per_stp);
   void set_step_mode(int num);
   void rotate_vel(int vel);
+  void emergency();
+  void reset(int global_step);
   rotate_stepper(PinName dir, PinName stp);
 };
 #endif
