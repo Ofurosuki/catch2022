@@ -35,3 +35,12 @@ void rotate_stepper::rotate_vel(int vel) {
     set_config(freq_diff_tmp, freq_max, freq_ini);
   }
 }
+
+void rotate_stepper::emergency() {
+  stepcycle = 0;  // called when limit switch is on
+}
+
+void rotate_stepper::reset() {
+  stepcycle = 0;
+  global_stp_counter = 0;  // for theta
+}
