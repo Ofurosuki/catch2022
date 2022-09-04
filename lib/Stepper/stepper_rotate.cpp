@@ -40,7 +40,7 @@ void rotate_stepper::emergency() {
   stepcycle = 0;  // called when limit switch is on
 }
 
-void rotate_stepper::reset() {
+void rotate_stepper::reset(int global_step) {
   stepcycle = 0;
-  global_stp_counter = 0;  // for theta
+  global_stp_counter = global_step;  // for theta
 }

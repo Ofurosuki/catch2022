@@ -21,7 +21,9 @@ Motor motor(0x01, manager);
 Servo servo(0x02, manager);
 Solenoid solenoid(0x03, manager);
 Sensor sensor(0x04, manager);
-rotate_stepper stepper0(DIR0, STP0);
+rotate_stepper stepper_z(DIR_z, STP_z);
+rotate_stepper stepper_theta(DIR_theta, STP_z);
+rotate_stepper stepper_r(DIR_r, STP_r);
 
 PC pcConnector;
 Gamepad gamepad;
@@ -34,20 +36,20 @@ enum Team { Red = 0, Blue };
 void move(position pos);
 
 void init(Team team) {
+  manager.begin();
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 1.0;
-  const float revolution_num_right = side;
 
   // reset servo
   if (team) {
     motor.driveVoltage(-motor_voltage_for_init);
-    stepper0.rotate_vel(stepper_vel_for_init);
+    stepper_r.rotate_vel(stepper_vel_for_init);
     // sw0 に向かって押す　(blue)
 
     // theta=0が基準点
   } else {
     motor.driveVoltage(motor_voltage_for_init);
-    stepper0.rotate_vel(stepper_vel_for_init);
+    stepper_r.rotate_vel(stepper_vel_for_init);
     // sw1　にむかって押す
     // theta=0 へ向かったあと、theta=180に向かう
   }
@@ -55,19 +57,27 @@ void init(Team team) {
 
 int main() {
   init(Red);
-  manager.begin();
+  const float revolution_num_rightside = 100.1;
+  //右端についたときの回転数
+  const int step_num_maxium = 104;
+  // r最大値
+
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
 
-  sensor.registerCallback(0, callback(&stepper0, &rotate_stepper::step));
-  // DC left limit
   sensor.registerCallback(1, [=](uint8_t, bool) {
     motor.reset();
-    motor.resetPosition();
-  });                                      // DC Right limit
-  sensor.registerCallback(2, callback());  // Stepper for r min_lim
-  sensor.registerCallback(3);              // Stepper for r max_lim
-  sensor.registerCallback(4);              // Stepper for r z_max
-  sensor.registerCallback(5);              // Stepper for theta
+    motor.resetPosition(0);
+  });
+  // DC left limit
+
+  sensor.registerCallback(1, [=](uint8_t, bool) {
+    motor.reset();
+    motor.resetPosition(revolution_num_rightside);
+  });                            // DC Right limit
+  sensor.registerCallback(2, );  // Stepper for r min_lim
+  sensor.registerCallback(3);    // Stepper for r max_lim
+  sensor.registerCallback(4);    // Stepper for r z_max
+  sensor.registerCallback(5);    // Stepper for theta
 
   stepper0.set_config(50, 1000, 100);  // set acceleration and  max velocity
   // stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
