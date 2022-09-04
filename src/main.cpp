@@ -1,5 +1,6 @@
 #include <CanManager.h>
 #include <Gamepad.h>
+#include <Gui.h>
 #include <Motor.h>
 #include <PC.h>
 #include <Sensor.h>
@@ -25,6 +26,7 @@ rotate_stepper stepper0(DIR0, STP0);
 
 PC pcConnector;
 Gamepad gamepad;
+Gui gui;
 
 DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
@@ -57,6 +59,7 @@ int main() {
   init(Red);
   manager.begin();
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcCallback));
 
   sensor.registerCallback(0, callback(&stepper0, &rotate_stepper::step));
   // DC left limit
