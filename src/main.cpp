@@ -1,5 +1,6 @@
 #include <CanManager.h>
 #include <Gamepad.h>
+#include <Gui.h>
 #include <Motor.h>
 #include <PC.h>
 #include <Sensor.h>
@@ -27,6 +28,7 @@ rotate_stepper stepper_r(DIR_r, STP_r);
 
 PC pcConnector;
 Gamepad gamepad;
+Gui gui;
 
 DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
@@ -63,6 +65,7 @@ int main() {
   // r最大値
 
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcCallback));
 
   sensor.registerCallback(1, [=](uint8_t, bool) {
     motor.reset();
