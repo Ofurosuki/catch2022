@@ -21,7 +21,7 @@ class Gui {
   void removeCallback() { callback = nullptr; }
   void pcCallback(uint8_t* data, size_t size);
 
-  Command getConfig() { return config; }
+  Command getCommand() { return command; }
 
   bool checkNewConfig() {
     if (!newConfig) return false;
@@ -31,6 +31,6 @@ class Gui {
 
  private:
   Callback<void(Command)> callback;
-  Command config;
+  Command command;
   bool newConfig = false;
 };
