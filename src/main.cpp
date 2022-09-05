@@ -198,6 +198,36 @@ int main() {
       ThisThread::sleep_for(100ms);
     }
   }
+
+  //以下修正版
+
+  is_waiting_for_input = true;
+  while (!gui.checkNewConfig()) {
+  }
+  is_waiting_for_input = false;
+
+  switch (gui.getCommand().mode) {
+    case gui.CommandMode::ownArea:
+      break;
+    case gui.CommandMode::commonArea:
+      break;
+    case gui.CommandMode::shootingBox:
+      if (gui.getCommand().enableSuckers[0] &&
+          gui.getCommand().enableSuckers[1] &&
+          gui.getCommand().enableSuckers[2]) {
+        move(shoot[gui.getCommand().destination]);
+      }
+      break;
+    default:
+      break;
+  }
+  is_waiting_for_input = true;
+  while (gamepad.getButton(1) == 0) {
+    // keichan's code here
+  }
+  is_waiting_for_input = true;
+  if (gui.getCommand().isHigher) {
+  }
 }
 
 /*

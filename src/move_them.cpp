@@ -21,3 +21,4 @@ float cal_theta(position pos) {
   }
 }
 void catch_jaga(float z) { stepper_z.rotate(z); }
+void release_jaga(z_height z) {}

@@ -6,9 +6,12 @@ typedef struct {
   float x_1 = 0;
 } position;
 
-extern const float z_high = 150.0;
-const float z_low = 30.0;
-const float z_high_2 = 230.0;
+typedef const struct {
+  float z_high = 150.0;
+  float z_low = 30.0;
+  float z_low_common = 40.0;
+  float z_high_2nd = 230.0;
+} z_height;
 
 position jaga[16] = {
     {-735, 448, 0}, {-635, 548, 0}, {-635, 348, 0}, {-535, 448, 0},
