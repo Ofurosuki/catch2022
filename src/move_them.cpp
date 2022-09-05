@@ -2,13 +2,11 @@
 #include <mbed.h>
 
 #include "field_data.h"
-
-position jaga_a = {100, 200};
-position shoot_a = {100, 223};
+#include "main.h"
 
 void move(position pos) {
   float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
-  stepper0.rotate(cal_theta(pos));
+  stepper_r.rotate(cal_theta(pos));
 }
 
 float cal_theta(position pos) {
@@ -22,3 +20,4 @@ float cal_theta(position pos) {
     return atan(pos.y / pos.x - pos.x_1);
   }
 }
+void catch_jaga(float z) { stepper_z.rotate(z); }

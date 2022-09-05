@@ -22,7 +22,10 @@ Motor motor(0x01, manager);
 Servo servo(0x02, manager);
 Solenoid solenoid(0x03, manager);
 Sensor sensor(0x04, manager);
-rotate_stepper stepper0(DIR0, STP0);
+
+rotate_stepper stepper_z(DIR_z, STP_z);
+rotate_stepper stepper_theta(DIR_theta, STP_z);
+rotate_stepper stepper_r(DIR_r, STP_r);
 
 PC pcConnector;
 Gamepad gamepad;
@@ -31,72 +34,88 @@ Gui gui;
 DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
 
-enum Team { Red = 0, Blue };
-
 void move(position pos);
 
 void init(Team team) {
+  manager.begin();
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 1.0;
-  const float revolution_num_right = side;
+  const float revolution_num_rightside = 100.1;
+  //右端についたときの回転数
+  const int step_num_maxium = 104;
+  // r最大値
+
+  pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcCallback));
+
+  sensor.registerCallback(0, [=](uint8_t, bool) {
+    motor.reset();
+    motor.resetPosition(0);
+  });
+  // DC left limit
+
+  sensor.registerCallback(1, [=](uint8_t, bool) {
+    motor.reset();
+    motor.resetPosition(revolution_num_rightside);
+  });  // DC Right limit
+  sensor.registerCallback(2, [=](uint8_t, bool) { stepper_r.reset(0); });
+  // Stepper for r min_lim
+  sensor.registerCallback(3, [=](uint8_t, bool) {
+    stepper_r.reset(step_num_maxium);
+  });  // Stepper for r max_lim
+  sensor.registerCallback(
+      4, [=](uint8_t, bool) { stepper_z.reset(0); });  // Stepper for r z_max
+  sensor.registerCallback(
+      5, [=](uint8_t, bool) { stepper_r.reset(0); });  // Stepper for theta
 
   // reset servo
   if (team) {
     motor.driveVoltage(-motor_voltage_for_init);
-    stepper0.rotate_vel(stepper_vel_for_init);
+    stepper_r.rotate_vel(stepper_vel_for_init);
+    for (int i = 0; i < 18; i++) {
+      shoot[i] = shootBlue[i];
+    }
     // sw0 に向かって押す　(blue)
 
     // theta=0が基準点
   } else {
     motor.driveVoltage(motor_voltage_for_init);
-    stepper0.rotate_vel(stepper_vel_for_init);
-    // sw1　にむかって押す
+    stepper_r.rotate_vel(stepper_vel_for_init);
+    for (int i = 0; i < 18; i++) {
+      shoot[i] = shootRed[i];
+    }
+    // sw1　にむかって押す(red)
     // theta=0 へ向かったあと、theta=180に向かう
   }
 }
 
 int main() {
   init(Red);
-  manager.begin();
-  pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
-  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcCallback));
+  // stepper0.set_config(50, 1000, 100);   set acceleration and  max velocity
+  //  stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
+  //   step )回すだけの関数もある
 
-  sensor.registerCallback(0, callback(&stepper0, &rotate_stepper::step));
-  // DC left limit
-  sensor.registerCallback(1, [=](uint8_t, bool) {
-    motor.reset();
-    motor.resetPosition();
-  });                                      // DC Right limit
-  sensor.registerCallback(2, callback());  // Stepper for r min_lim
-  sensor.registerCallback(3);              // Stepper for r max_lim
-  sensor.registerCallback(4);              // Stepper for r z_max
-  sensor.registerCallback(5);              // Stepper for theta
-
-  stepper0.set_config(50, 1000, 100);  // set acceleration and  max velocity
-  // stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
-  //  step )回すだけの関数もある
-
-  stepper0.set_theta_config(0, 100);
+  // stepper0.set_theta_config(0, 100);
   //起動時の角度を指定、1ステップあたりの角度を指定
-  // while(button){}
-  // stepper0.rotate(2000);
+  //  while(button){}
+  //  stepper0.rotate(2000);
   while (button) {
   }
-  stepper0.step(300, -20000);
-  // stepper0.rotate(360);
-
-  while (true) {
-    printf("progresscnt:%f\n", stepper0.progress_cnt());
-  }
+  // stepper0.step(300, -20000);
+  //  stepper0.rotate(360);
 
   enum jaga_group {
-    jaga_a = 0,
-    jaga_b = 1,
-    jaga_c = 2  //これらの値がｐｃから送られてくる
+    jaga_a = 1,
+    jaga_b,
+    jaga_c,
+    jaga_d,
+    jaga_e,
+    jaga_f  //これらの値がｐｃから送られてくる
   };
-  enum shoot_group { shoot_a = 0, shoot_b = 1, shoot_c = 2 };
-  void catch_jaga();
-  void move();
+  enum shoot_group { shoot_a = 1, shoot_b, shoot_c, shoot_d, shoot_e, shoot_f };
+
+  void catch_jaga(float z);
+  void move(position pos);
   bool is_field_red = true;
   bool is_catch_successful = false;
   bool is_waiting_for_input = true;
@@ -104,24 +123,35 @@ int main() {
 
   while (true) {
     // scanf的な何かでselecting_placeに値を入れる
-    int selecting_place = 1;
     bool is_waiting_for_input = true;
+    while (!gui.checkNewConfig()) {
+    }
+    is_waiting_for_input = false;
 
-    bool x_button = gamepad.getButton(1);
-    bool o_button = gamepad.getButton(2);
-
-    switch (selecting_place) {
+    switch (gui.getConfig().moveTo) {
       case jaga_a:
         printf("moving to jaga_a\n");
-        move(jaga_a);
+        move(jaga[1]);
         break;
       case jaga_b:
         printf("moving to jaga_b\n");
-        move(jaga_b);
+        move(jaga[2]);
         break;
       case jaga_c:
         printf("moving to jaga_c\n");
-        move(jaga_c);
+        move(jaga[3]);
+        break;
+      case jaga_d:
+        printf("moving to jaga_d\n");
+        move(jaga[4]);
+        break;
+      case jaga_e:
+        printf("moving to jaga_e\n");
+        move(jaga[5]);
+        break;
+      case jaga_f:
+        printf("moving to jaga_f\n");
+        move(jaga[6]);
         break;
       default:
         break;
@@ -132,30 +162,33 @@ int main() {
     }
     while (!is_catch_successful) {
       is_waiting_for_input = true;
-      while (!x_button) {
+      while (!gamepad.getButton(1)) {
         // Kei-chan's code (controller)
       }
       is_waiting_for_input = false;
       catch_jaga();
-      while (x_button == 0 && o_button == 0) {
-        if (x_button == 1) {
+      while (gamepad.getButton(1) == 0 && gamepad.getButton(2) == 0) {
+        if (gamepad.getButton(1) == 1) {
           is_catch_successful = true;
         } else {
           is_catch_successful = false;
         }
       }
     }
-    // scanf的な何かでselecting_placeに入れる
     is_waiting_for_input = true;
-    switch (selecting_place) {
+    while (!gui.checkNewConfig()) {
+    }
+    is_waiting_for_input = false;
+
+    switch (gui.getConfig().moveTo) {
       case shoot_a:
-        move(shoot_a_position);
+        move(shoot[0]);
         break;
       case shoot_b:
-        move(shoot_b_position);
+        move(shoot[3]);
         break;
       case shoot_c:
-        move(shoot_c_position);
+        move(shoot[6]);
         break;
       default:
         break;
