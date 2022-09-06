@@ -35,6 +35,22 @@ DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
 
 void move(position pos);
+void move(position pos, bool is_common = 0) {
+  float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
+  stepper_r.rotate(cal_theta(pos));
+  motor.drivePosition(pos.x_1);  //何回転が何ミリか確認し、修正
+  if (is_common) {
+    servo.setPosition(90.0 - cal_theta(pos));
+  } else {
+    servo.setPosition(jaga_3_degree - cal_theta(pos));
+  }
+}
+// move_them.cpp
+float cal_theta(position pos);
+void catch_jaga(float z);
+void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1);
+void take_down(float z);
+void take_up(float z);
 
 void init(Team team) {
   manager.begin();
@@ -180,7 +196,7 @@ int main() {
     }
     is_waiting_for_input = false;
 
-    switch (gui.getConfig().moveTo) {
+    switch (gui.getCommand().d) {
       case shoot_a:
         move(shoot[0]);
         break;
@@ -216,17 +232,25 @@ int main() {
           gui.getCommand().enableSuckers[1] &&
           gui.getCommand().enableSuckers[2]) {
         move(shoot[gui.getCommand().destination]);
+      } else if (gui.getCommand().enableSuckers[1]) {
+        move(shoot[gui.getCommand().destination]);
+      } else if (gui.getCommand().enableSuckers) {
       }
+      is_waiting_for_input = true;
+      while (gamepad.getButton(1) == 0) {
+        // keichan's code here
+      }
+      is_waiting_for_input = false;
+      if (gui.getCommand().isHigher) {
+        take_down(z_height.z_low);
+      } else {
+        take_down(z_height.z_high_2nd);
+      }
+      release_jaga();
+      take_up();
       break;
     default:
       break;
-  }
-  is_waiting_for_input = true;
-  while (gamepad.getButton(1) == 0) {
-    // keichan's code here
-  }
-  is_waiting_for_input = true;
-  if (gui.getCommand().isHigher) {
   }
 }
 
