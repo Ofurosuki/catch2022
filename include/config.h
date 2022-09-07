@@ -25,13 +25,14 @@ position shoot[18] = {{-29, -785},  {-29, -885},  {-29, -985},  {-129, -785},
                       {-531, -885}, {-531, -985}};
 
 #include <mbed.h>
-#define STP0 PB_15  //ぐれー PB_15 7
-#define STP1 PB_3
-#define STP2 PB_0
-#define STP3 PA_4
-#define DIR0 PB_1  //白　 6
-#define DIR1 PB_12
-#define DIR2 PB_9
-#define DIR3 PB_4
+#define DIR0 PB_12  //ぐれー PB_15 7
+#define DIR1 PB_14
+#define DIR2 PC_6
+#define DIR3 PA_8
+#define STP0 PB_13  //白　 6
+#define STP1 PB_15
+#define STP2 PC_7
+#define STP3 PC_9
+
 #define call_interval 100
 #define H_time_length 500
