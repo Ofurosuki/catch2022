@@ -40,8 +40,8 @@ void getDegree(int xAxis0, int yAxis0, int xAxis1, int yAxis1) {
   yAxis0 = gamepad.getAxis(1);
   xAxis1 = gamepad.getAxis(2);
   yAxis1 = gamepad.getAxis(3);
-  joyDeg0 = atan2(xAxis0, yAxis0);
-  joyDeg1 = atan2(xAxis1, yAxis1);
+  joyDeg0 = atan2(yAxis0, xAxis0);
+  joyDeg1 = atan2(yAxis1, xAxis1);
 }
 
 int main() {
