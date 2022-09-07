@@ -34,23 +34,13 @@ Gui gui;
 DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
 
-void move(position pos);
-void move(position pos, bool is_common = 0) {
-  float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
-  stepper_r.rotate(cal_theta(pos));
-  motor.drivePosition(pos.x_1);  //何回転が何ミリか確認し、修正
-  if (is_common) {
-    servo.setPosition(90.0 - cal_theta(pos));
-  } else {
-    servo.setPosition(jaga_3_degree - cal_theta(pos));
-  }
-}
-// move_them.cpp
+void move(position pos, bool is_common = 0);
 float cal_theta(position pos);
 void catch_jaga(float z);
 void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1);
 void take_down(float z);
 void take_up(float z);
+void gamepad_input_to_command();
 
 void init(Team team) {
   manager.begin();
@@ -58,7 +48,7 @@ void init(Team team) {
   const float motor_voltage_for_init = 1.0;
   const float revolution_num_rightside = 100.1;
   //右端についたときの回転数
-  const int step_num_maxium = 104;
+  const int step_num_maxium = 500;
   // r最大値
 
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
@@ -84,7 +74,7 @@ void init(Team team) {
   sensor.registerCallback(
       5, [=](uint8_t, bool) { stepper_r.reset(0); });  // Stepper for theta
 
-  // reset servo
+  servo.setPosition(0);  // reset servo
   if (team) {
     motor.driveVoltage(-motor_voltage_for_init);
     stepper_r.rotate_vel(stepper_vel_for_init);
@@ -107,146 +97,80 @@ void init(Team team) {
 
 int main() {
   init(Red);
-  // stepper0.set_config(50, 1000, 100);   set acceleration and  max velocity
-  //  stepper0.step(20, -1000);  // rotate stepper (initial frequency and target
-  //   step )回すだけの関数もある
-
-  // stepper0.set_theta_config(0, 100);
-  //起動時の角度を指定、1ステップあたりの角度を指定
-  //  while(button){}
-  //  stepper0.rotate(2000);
-  while (button) {
-  }
-  // stepper0.step(300, -20000);
-  //  stepper0.rotate(360);
-
-  enum jaga_group {
-    jaga_a = 1,
-    jaga_b,
-    jaga_c,
-    jaga_d,
-    jaga_e,
-    jaga_f  //これらの値がｐｃから送られてくる
-  };
-  enum shoot_group { shoot_a = 1, shoot_b, shoot_c, shoot_d, shoot_e, shoot_f };
-
-  void catch_jaga(float z);
-  void move(position pos);
-  bool is_field_red = true;
-  bool is_catch_successful = false;
   bool is_waiting_for_input = true;
-  bool is_finished = true;
-
-  while (true) {
-    // scanf的な何かでselecting_placeに値を入れる
-    bool is_waiting_for_input = true;
-    while (!gui.checkNewConfig()) {
-    }
-    is_waiting_for_input = false;
-
-    switch (gui.getConfig().moveTo) {
-      case jaga_a:
-        printf("moving to jaga_a\n");
-        move(jaga[1]);
-        break;
-      case jaga_b:
-        printf("moving to jaga_b\n");
-        move(jaga[2]);
-        break;
-      case jaga_c:
-        printf("moving to jaga_c\n");
-        move(jaga[3]);
-        break;
-      case jaga_d:
-        printf("moving to jaga_d\n");
-        move(jaga[4]);
-        break;
-      case jaga_e:
-        printf("moving to jaga_e\n");
-        move(jaga[5]);
-        break;
-      case jaga_f:
-        printf("moving to jaga_f\n");
-        move(jaga[6]);
-        break;
-      default:
-        break;
-    }
-    is_waiting_for_input = false;
-    while (!is_finished) {  //作業完了をまつ
-      ThisThread::sleep_for(100ms);
-    }
-    while (!is_catch_successful) {
-      is_waiting_for_input = true;
-      while (!gamepad.getButton(1)) {
-        // Kei-chan's code (controller)
-      }
-      is_waiting_for_input = false;
-      catch_jaga();
-      while (gamepad.getButton(1) == 0 && gamepad.getButton(2) == 0) {
-        if (gamepad.getButton(1) == 1) {
-          is_catch_successful = true;
-        } else {
-          is_catch_successful = false;
-        }
-      }
-    }
-    is_waiting_for_input = true;
-    while (!gui.checkNewConfig()) {
-    }
-    is_waiting_for_input = false;
-
-    switch (gui.getCommand().d) {
-      case shoot_a:
-        move(shoot[0]);
-        break;
-      case shoot_b:
-        move(shoot[3]);
-        break;
-      case shoot_c:
-        move(shoot[6]);
-        break;
-      default:
-        break;
-    }
-    is_waiting_for_input = false;
-    while (!is_finished) {
-      ThisThread::sleep_for(100ms);
-    }
-  }
-
-  //以下修正版
-
-  is_waiting_for_input = true;
   while (!gui.checkNewConfig()) {
   }
   is_waiting_for_input = false;
 
   switch (gui.getCommand().mode) {
     case gui.CommandMode::ownArea:
+      move(jaga[gui.getCommand().destination]);
+      move(sharejaga[gui.getCommand().destination]);
+      //目的地到着後（シュート）
+      is_waiting_for_input = true;
+      gamepad_input_to_command();
+      is_waiting_for_input = false;
+      take_down(z_height.z_down);
+      is_waiting_for_input = true;
+      gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
+      is_waiting_for_input = false;
+      take_down(z_height.z_down_take);
+      // if finished
+      take_up();
       break;
     case gui.CommandMode::commonArea:
+      move(sharejaga[gui.getCommand().destination], true);
+      //目的地到着後（シュート）
+      is_waiting_for_input = true;
+      gamepad_input_to_command();
+      is_waiting_for_input = false;
+      take_down(z_height.z_down_common);
+      is_waiting_for_input = true;
+      gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
+      is_waiting_for_input = false;
+      take_down(z_height.z_down_common_take);
+      // if finished
+      take_up();
+      break;
       break;
     case gui.CommandMode::shootingBox:
       if (gui.getCommand().enableSuckers[0] &&
           gui.getCommand().enableSuckers[1] &&
           gui.getCommand().enableSuckers[2]) {
-        move(shoot[gui.getCommand().destination]);
+        move(shoot[gui.getCommand().destination]);  // ooo
       } else if (gui.getCommand().enableSuckers[1]) {
-        move(shoot[gui.getCommand().destination]);
-      } else if (gui.getCommand().enableSuckers) {
+        if (!(gui.getCommand().enableSuckers[0] ||
+              gui.getCommand().enableSuckers[2])) {
+          move(shoot[gui.getCommand().destination]);  // xox
+        } else {
+          move(shoot[gui.getCommand().destination]);  // xoo
+        }
+      } else {
+        if (gui.getCommand().enableSuckers[0] &&
+            gui.getCommand().enableSuckers[2]) {
+          move(shoot[gui.getCommand().destination]);  // oxo
+        } else if (gui.getCommand().enableSuckers[0] ||
+                   gui.getCommand().enableSuckers[2]) {
+          move(shoot[gui.getCommand().destination]);  // xxo
+        } else {
+          // xxx 未定
+        }
       }
+
+      //目的地到着後（シュート）
       is_waiting_for_input = true;
-      while (gamepad.getButton(1) == 0) {
-        // keichan's code here
-      }
+      gamepad_input_to_command();
       is_waiting_for_input = false;
       if (gui.getCommand().isHigher) {
-        take_down(z_height.z_low);
+        take_down(z_height.z_down_2nd_release);
       } else {
-        take_down(z_height.z_high_2nd);
+        take_down(z_height.z_down_release);
       }
+      is_waiting_for_input = true;
+      gamepad_input_to_command();  //下した後の微調節、いるか要検討(落とすときはいるのかな)
+      is_waiting_for_input = false;
       release_jaga();
+      // if(finished)
       take_up();
       break;
     default:
