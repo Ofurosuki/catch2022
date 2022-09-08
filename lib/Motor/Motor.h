@@ -9,7 +9,7 @@ class Motor {
 
   Motor(uint16_t hardId, CanManager& manager)
       : hardId(hardId), manager(manager) {
-    manager.registerCallback(callback(this, &Motor::receive), hardId);
+    // manager.registerCallback(callback(this, &Motor::receive), hardId);
   }
 
   void receive(CanManager::Message msg);

@@ -18,8 +18,8 @@ DigitalIn button(BUTTON1);
 int main() {
   manager.begin();
   printf("start\n");
-  motor.setMode(Motor::Mode::Position);
-  motor.drivePosition(4);
+  motor.setMode(Motor::Mode::Voltage);
+  motor.driveVoltage(1);
 
   while (true) {
     printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
