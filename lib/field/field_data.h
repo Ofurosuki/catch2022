@@ -5,41 +5,23 @@ typedef struct {
   float y = 0;
   float x_1 = 0;
 } position;
-const float jaga_3_degree = 60.0;
-// 3連のじゃがりこのx軸に対してなす角
-//もし、シュートの角度が違えばさらに追加
 
 typedef struct {
-  float z_high = 150.0;
-  float z_low = 30.0;
-  float z_low_common = 40.0;
-  float z_high_2nd = 230.0;
+  float z_up = 150.0;
+  float z_down_take = 30.0f;
+  float z_down = 2.0f;
+  float z_down_common = 40.0f;
+  float z_down_common_take = 230.0f;
+  float z_down_release = 15.0f;
+  float z_down_2nd_release = 115.0f;
+
 } Z_height;
 
-Z_height z_height;
-
-position jaga[16] = {
-    {-735, 448, 0}, {-635, 548, 0}, {-635, 348, 0}, {-535, 448, 0},
-    {-435, 548, 0}, {-435, 348, 0}, {-335, 448, 0}, {-235, 548, 0},
-    {-235, 348, 0}, {-135, 448, 0}, {-35, 548, 0},  {-35, 348, 0},
-    {65, 448, 0},   {165, 548, 0},  {165, 348, 0},  {265, 448, 0}};
-
-position sharejaga[9] = {{325.1, 845, 0},  {185.1, 845, 0},  {45.1, 845, 0},
-                         {-94.9, 845, 0},  {-234.9, 845, 0}, {-374.9, 845, 0},
-                         {-514.9, 845, 0}, {-654.9, 845, 0}, {-794.9, 845, 0}};
-
-position shootRed[18] = {{-985, -29, 0},  {-885, -29, 0},  {-785, -29, 0},
-                         {-985, -129, 0}, {-885, -129, 0}, {-785, -129, 0},
-                         {-985, -230, 0}, {-885, -230, 0}, {-785, -230, 0},
-                         {-985, -330, 0}, {-885, -330, 0}, {-785, -330, 0},
-                         {-985, -431, 0}, {-885, -431, 0}, {-785, -431, 0},
-                         {-985, -531, 0}, {-885, -531, 0}, {-785, -531, 0}};
-
-position shootBlue[18] = {{315, -29, 0},  {415, -29, 0},  {515, -29, 0},
-                          {315, -129, 0}, {415, -129, 0}, {515, -129, 0},
-                          {315, -230, 0}, {415, -230, 0}, {515, -230, 0},
-                          {315, -330, 0}, {415, -330, 0}, {515, -330, 0},
-                          {315, -431, 0}, {415, -431, 0}, {515, -431, 0},
-                          {315, -531, 0}, {415, -531, 0}, {515, -531, 0}};
-
-position shoot[18];  // shoot red or blue が代入される
+extern const float jaga_3_degree;
+extern const float x1_max;
+extern Z_height z_height;
+extern position jaga[16];
+extern position sharejaga[9];
+extern position shootRed[18];
+extern position shootBlue[18];
+extern position shoot[18];

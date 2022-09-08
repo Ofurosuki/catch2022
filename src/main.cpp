@@ -9,6 +9,7 @@
 #include <config.h>
 #include <field_data.h>
 #include <mbed.h>
+#include <move_them.h>
 #include <stepper.h>
 #include <stepper_rotate.h>
 
@@ -34,15 +35,21 @@ Gui gui;
 DigitalOut led(LED1);
 DigitalIn button(BUTTON1);
 
-void move(position pos, bool is_common = 0);
-float cal_theta(position pos);
-void catch_jaga(float z);
-void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1);
-void take_down(float z);
-void take_up(float z);
-void gamepad_input_to_command();
+static bool is_waiting_for_input = true;
 
-void init(Team team) {
+void ini() {
+  sensor.registerCallback(0, [=](uint8_t, bool) {
+    initialize(Blue);
+    printf("team: we're blue team.\n");
+    is_waiting_for_input = false;
+  });
+  sensor.registerCallback(1, [=](uint8_t, bool) {
+    initialize(Red);
+    printf("team: we're red team.\n");
+    is_waiting_for_input = false;
+  });
+}
+void initialize(Team team) {
   manager.begin();
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 1.0;
@@ -57,22 +64,31 @@ void init(Team team) {
   sensor.registerCallback(0, [=](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(0);
+    printf("x1 :left limit detected\n");
   });
-  // DC left limit
 
   sensor.registerCallback(1, [=](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(revolution_num_rightside);
-  });  // DC Right limit
-  sensor.registerCallback(2, [=](uint8_t, bool) { stepper_r.reset(0); });
-  // Stepper for r min_lim
+    printf("x1 :right limit detected\n");
+  });
+  sensor.registerCallback(2, [=](uint8_t, bool) {
+    stepper_r.reset(0);
+    printf("r :minimum limit detected\n");
+  });
+
   sensor.registerCallback(3, [=](uint8_t, bool) {
     stepper_r.reset(step_num_maxium);
-  });  // Stepper for r max_lim
-  sensor.registerCallback(
-      4, [=](uint8_t, bool) { stepper_z.reset(0); });  // Stepper for r z_max
-  sensor.registerCallback(
-      5, [=](uint8_t, bool) { stepper_r.reset(0); });  // Stepper for theta
+    printf("r :maximum limit detected\n");
+  });
+  sensor.registerCallback(4, [=](uint8_t, bool) {
+    stepper_z.reset(0);
+    printf("z :maximum limit detected\n");
+  });
+  sensor.registerCallback(5, [=](uint8_t, bool) {
+    stepper_theta.reset(0);
+    printf("theta :zero point adjustment detected\n");
+  });
 
   servo.setPosition(0);  // reset servo
   if (team) {
@@ -96,85 +112,87 @@ void init(Team team) {
 }
 
 int main() {
-  init(Red);
-  bool is_waiting_for_input = true;
-  while (!gui.checkNewConfig()) {
-  }
-  is_waiting_for_input = false;
+  ini();
+  while (true) {
+    is_waiting_for_input = true;
+    while (!gui.checkNewConfig()) {
+    }
+    is_waiting_for_input = false;
 
-  switch (gui.getCommand().mode) {
-    case gui.CommandMode::ownArea:
-      move(jaga[gui.getCommand().destination]);
-      move(sharejaga[gui.getCommand().destination]);
-      //目的地到着後（シュート）
-      is_waiting_for_input = true;
-      gamepad_input_to_command();
-      is_waiting_for_input = false;
-      take_down(z_height.z_down);
-      is_waiting_for_input = true;
-      gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
-      is_waiting_for_input = false;
-      take_down(z_height.z_down_take);
-      // if finished
-      take_up();
-      break;
-    case gui.CommandMode::commonArea:
-      move(sharejaga[gui.getCommand().destination], true);
-      //目的地到着後（シュート）
-      is_waiting_for_input = true;
-      gamepad_input_to_command();
-      is_waiting_for_input = false;
-      take_down(z_height.z_down_common);
-      is_waiting_for_input = true;
-      gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
-      is_waiting_for_input = false;
-      take_down(z_height.z_down_common_take);
-      // if finished
-      take_up();
-      break;
-      break;
-    case gui.CommandMode::shootingBox:
-      if (gui.getCommand().enableSuckers[0] &&
-          gui.getCommand().enableSuckers[1] &&
-          gui.getCommand().enableSuckers[2]) {
-        move(shoot[gui.getCommand().destination]);  // ooo
-      } else if (gui.getCommand().enableSuckers[1]) {
-        if (!(gui.getCommand().enableSuckers[0] ||
-              gui.getCommand().enableSuckers[2])) {
-          move(shoot[gui.getCommand().destination]);  // xox
-        } else {
-          move(shoot[gui.getCommand().destination]);  // xoo
-        }
-      } else {
+    switch (gui.getCommand().mode) {
+      case gui.CommandMode::ownArea:
+        move(jaga[gui.getCommand().destination]);
+        move(sharejaga[gui.getCommand().destination]);
+        //目的地到着後（シュート）
+        is_waiting_for_input = true;
+        gamepad_input_to_command();
+        is_waiting_for_input = false;
+        take_down(z_height.z_down);
+        is_waiting_for_input = true;
+        gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
+        is_waiting_for_input = false;
+        take_down(z_height.z_down_take);
+        // if finished
+        take_up();
+        break;
+      case gui.CommandMode::commonArea:
+        move(sharejaga[gui.getCommand().destination], true);
+        //目的地到着後（シュート）
+        is_waiting_for_input = true;
+        gamepad_input_to_command();
+        is_waiting_for_input = false;
+        take_down(z_height.z_down_common);
+        is_waiting_for_input = true;
+        gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
+        is_waiting_for_input = false;
+        take_down(z_height.z_down_common_take);
+        // if finished
+        take_up();
+        break;
+        break;
+      case gui.CommandMode::shootingBox:
         if (gui.getCommand().enableSuckers[0] &&
+            gui.getCommand().enableSuckers[1] &&
             gui.getCommand().enableSuckers[2]) {
-          move(shoot[gui.getCommand().destination]);  // oxo
-        } else if (gui.getCommand().enableSuckers[0] ||
-                   gui.getCommand().enableSuckers[2]) {
-          move(shoot[gui.getCommand().destination]);  // xxo
+          move(shoot[gui.getCommand().destination]);  // ooo
+        } else if (gui.getCommand().enableSuckers[1]) {
+          if (!(gui.getCommand().enableSuckers[0] ||
+                gui.getCommand().enableSuckers[2])) {
+            move(shoot[gui.getCommand().destination]);  // xox
+          } else {
+            move(shoot[gui.getCommand().destination]);  // xoo
+          }
         } else {
-          // xxx 未定
+          if (gui.getCommand().enableSuckers[0] &&
+              gui.getCommand().enableSuckers[2]) {
+            move(shoot[gui.getCommand().destination]);  // oxo
+          } else if (gui.getCommand().enableSuckers[0] ||
+                     gui.getCommand().enableSuckers[2]) {
+            move(shoot[gui.getCommand().destination]);  // xxo
+          } else {
+            continue;  // xxx シュートへ行く意味ないのでもう一度選択させる
+          }
         }
-      }
 
-      //目的地到着後（シュート）
-      is_waiting_for_input = true;
-      gamepad_input_to_command();
-      is_waiting_for_input = false;
-      if (gui.getCommand().isHigher) {
-        take_down(z_height.z_down_2nd_release);
-      } else {
-        take_down(z_height.z_down_release);
-      }
-      is_waiting_for_input = true;
-      gamepad_input_to_command();  //下した後の微調節、いるか要検討(落とすときはいるのかな)
-      is_waiting_for_input = false;
-      release_jaga();
-      // if(finished)
-      take_up();
-      break;
-    default:
-      break;
+        //目的地到着後（シュート）
+        is_waiting_for_input = true;
+        gamepad_input_to_command();
+        is_waiting_for_input = false;
+        if (gui.getCommand().isHigher) {
+          take_down(z_height.z_down_2nd_release);
+        } else {
+          take_down(z_height.z_down_release);
+        }
+        is_waiting_for_input = true;
+        gamepad_input_to_command();  //下した後の微調節、いるか要検討(落とすときはいるのかな)
+        is_waiting_for_input = false;
+        release_jaga();
+        // if(finished)
+        take_up();
+        break;
+      default:
+        break;
+    }
   }
 }
 
