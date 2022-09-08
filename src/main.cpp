@@ -151,6 +151,7 @@ int main() {
         break;
 
       case gui.CommandMode::shootingBox:
+        //
         if (gui.getCommand().enableSuckers[0] &&
             gui.getCommand().enableSuckers[1] &&
             gui.getCommand().enableSuckers[2]) {
@@ -159,20 +160,35 @@ int main() {
           if (!(gui.getCommand().enableSuckers[0] ||
                 gui.getCommand().enableSuckers[2])) {
             move(shoot[gui.getCommand().destination]);  // xox
-          } else {
+            servo.setPosition(phi(45));
+          } else if (!(gui.getCommand().enableSuckers[0]) &&
+                     (gui.getCommand().enableSuckers[2])) {
             move(shoot[gui.getCommand().destination]);  // xoo
-          }
-        } else {
-          if (gui.getCommand().enableSuckers[0] &&
-              gui.getCommand().enableSuckers[2]) {
-            move(shoot[gui.getCommand().destination]);  // oxo
-          } else if (gui.getCommand().enableSuckers[0] ||
-                     gui.getCommand().enableSuckers[2]) {
-            move(shoot[gui.getCommand().destination]);  // xxo
+            servo.setPosition(phi(45));
           } else {
+            move(shoot[gui.getCommand().destination]);  // oox
+            servo.setPosition(phi(225));
+          }
+        } else if (!(gui.getCommand().enableSuckers[1])) {
+          if ((gui.getCommand().enableSuckers[0]) &&
+              (gui.getCommand().enableSuckers[2])) {
+            move(shoot[gui.getCommand().destination]);  // oxo
+            servo.setPosition(phi(45));
+          } else if (!(gui.getCommand().enableSuckers[0]) &&
+                     (gui.getCommand().enableSuckers[2])) {
+            move(shoot[gui.getCommand().destination]);  // xxo
+            servo.setPosition(phi(45));
+          } else {
+            move(shoot[gui.getCommand().destination]);  // oxx
+            servo.setPosition(phi(225));
+          }
+          else {
             continue;  // xxx シュートへ行く意味ないのでもう一度選択させる
           }
         }
+
+        // 1がo or x で場合分けいい気がする！
+        //もし1が〇の時は、Bのシューティングボックス1に入れたいときにservo(45)だと3にかぶることになるからシューティングボックスの外側に座標を指定するという作業が必要になりそう
 
         //目的地到着後（シュート）
         is_waiting_for_input = true;
