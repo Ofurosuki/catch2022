@@ -149,7 +149,7 @@ int main() {
         // if finished
         take_up();
         break;
-        break;
+
       case gui.CommandMode::shootingBox:
         if (gui.getCommand().enableSuckers[0] &&
             gui.getCommand().enableSuckers[1] &&
