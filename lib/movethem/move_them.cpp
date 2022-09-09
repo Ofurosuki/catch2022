@@ -42,12 +42,10 @@ void move(position pos, bool is_common = 0) {
 void catch_jaga(float z) { stepper_z.rotate(z); }
 const int delta_time_to_resuck = 1000;
 void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1) {
-  if (sucker0)
-    solenoid.driveSingle(0, 1,
-                         delta_time_to_resuck);  // 1を吸引解除ということに
+  if (sucker0) solenoid.driveSingle(0, 1, delta_time_to_resuck);
   if (sucker1) solenoid.driveSingle(1, 1, delta_time_to_resuck);
   if (sucker2) solenoid.driveSingle(2, 1, delta_time_to_resuck);
-}
+}  // 1を吸引解除ということに
 
 void take_down(float z) { stepper_z.rotate(z); }
 void take_up() { stepper_z.rotate(z_height.z_up); }
