@@ -110,6 +110,9 @@ void initialize(Team team) {
     // theta=0 へ向かったあと、theta=180に向かう
   }
 }
+int destinationBwall;  //青の壁側の座標
+int pickedvac0;        // 1st picked vacuum
+int pickedvac1;        // 2nd picked vacuum
 
 int main() {
   ini();
@@ -118,11 +121,13 @@ int main() {
     while (!gui.checkNewConfig()) {
     }
     is_waiting_for_input = false;
+    pickedvac0 = gui.getCommand().destination0;
+    pickedvac1 = gui.getCommand().destination1;
 
     switch (gui.getCommand().mode) {
       case gui.CommandMode::ownArea:
-        move(jaga[gui.getCommand().destination]);
-        move(sharejaga[gui.getCommand().destination]);
+        move(jaga[gui.getCommand().destination1]);
+        move(sharejaga[gui.getCommand().destination1]);
         //目的地到着後（シュート）
         is_waiting_for_input = true;
         gamepad_input_to_command();
@@ -134,9 +139,29 @@ int main() {
         take_down(z_height.z_down_take);
         // if finished
         take_up();
+
+        //場所と方向をGUIで指定して取るとき
+        move(jaga[pickedvac1]);
+        if (pickedvac0 > pickedvac1) {
+          if (((pickedvac1) % 2 == 0 &&
+               (pickedvac0) % 2 == 0) ||                       // 0=even&1=odd
+              ((pickedvac1) % 2 != 0 && (pickedvac0 != 0))) {  // 0=odd&1=even
+            servo.setPosition(phi(315));
+          } else {
+            servo.setPosition(phi(45));
+          }
+        } else {  // destination 0<1
+          if (((pickedvac0) % 2 == 0 && (pickedvac1) % 2 == 0) ||
+              ((pickedvac0) % 2 != 0 && (pickedvac1) % 2 != 0)) {
+            servo.setPosition(phi(135));
+          } else {
+            servo.setPosition(phi(225));
+          }
+        }
+        //場所方向指定ここまで
         break;
       case gui.CommandMode::commonArea:
-        move(sharejaga[gui.getCommand().destination], true);
+        move(sharejaga[gui.getCommand().destination1], true);
         //目的地到着後（シュート）
         is_waiting_for_input = true;
         gamepad_input_to_command();
@@ -151,7 +176,7 @@ int main() {
         break;
         break;
       case gui.CommandMode::shootingBox:
-        //
+        /*
         if (gui.getCommand().enableSuckers[0] &&
             gui.getCommand().enableSuckers[1] &&
             gui.getCommand().enableSuckers[2]) {
@@ -185,35 +210,124 @@ int main() {
           else {
             continue;  // xxx シュートへ行く意味ないのでもう一度選択させる
           }
-        }
+          */
+      // ShootingBox BLUE までの移動とサーボの角度
+      case gui.CommandMode::shootingBlue:  // when shoot in to the blue
+                                           // shooting box
+        if ((pickedvac0 == 11 &&  // starting position and Degree set for
+                                  // 4 center rows.
+             pickedvac1 == 13) ||
+            (pickedvac0 == 8 && pickedvac1 == 10) ||
+            (pickedvac0 == 5 && pickedvac1 == 7) ||
+            (pickedvac0 == 2 && pickedvac1 == 4) ||
+            (pickedvac0 == 14 && pickedvac1 == 16) ||
+            (pickedvac0 == 1 && pickedvac1 == 3)) {
+          move(shoot[pickedvac1]);
+          servo.setPosition(phi(45));  // Position and Degree is ready
+        } else if ((pickedvac0 == pickedvac1) &&
+                   !(pickedvac0 == 4 || pickedvac0 == 7 || pickedvac0 == 10 ||
+                     pickedvac0 == 13)) {
+          move(
+              shootBwall
+                  [pickedvac0]);  //中心はシューティングボックスの外側の座標に合わせて移動（field_data.hに追加済み）
+          switch (
+              pickedvac0) {  //選んだ場所によってサーボの角度調節（このスイッチ文大丈夫？）
+                case 0;
+                case 1;
+                case 2;
+                case 3;
+                case 6;
+                case 9;
+                case 12;
+                case 15;
+                  servo.setPosition(phi(315));
+                  break;
+                case 16;
+                case 17;
+                  servo.setPosition(phi(45));
+                  break;
+                case 2;
+                case 5;
+                case 8;
+                case 11;
+                case 14;
+                  servo.setPosition(phi(135));
+                  break;
+            } else {
+              //何も動かさない、最初から選択
+            }
 
-        // 1がo or x で場合分けいい気がする！
-        //もし1が〇の時は、Bのシューティングボックス1に入れたいときにservo(45)だと3にかぶることになるからシューティングボックスの外側に座標を指定するという作業が必要になりそう
+          //ShootinBox REDまでの移動、サーボの角度
+          case gui.CommandMode::shootingRed:
+                  if ((pickedvac0 == 3 &&  // starting position and Degree
+                                           // set for 4 center rows.
+                       pickedvac1 == 1) ||
+                      (pickedvac0 == 6 && pickedvac1 == 4) ||
+                      (pickedvac0 == 9 && pickedvac1 == 7) ||
+                      (pickedvac0 == 12 && pickedvac1 == 10) ||
+                      (pickedvac0 == 15 && pickedvac1 == 13) ||
+                      (pickedvac0 == 16 && pickedvac1 == 14)) {
+                    move(shoot[pickedvac1]);
+                    servo.setPosition(
+                        phi(225));  // Position and Degree is ready
+                  } else if ((pickedvac0 == pickedvac1) &&
+                             !(pickedvac0 == 4 || pickedvac0 == 7 ||
+                               pickedvac0 == 10 || pickedvac0 == 13)) {
+                    move(
+                        shootBwall
+                            [pickedvac0]);  //中心はシューティングボックスの外側の座標に合わせて移動（field_data.hに追加済み）
+                    switch (pickedvac0) {
+                          case 0;
+                          case 1;
+                          case 2;
+                          case 5;
+                          case 8;
+                          case 11;
+                          case 14;
+                          case 17;
+                            servo.setPosition(phi(225));
+                            break;
+                          case 15;
+                          case 16;
+                            servo.setPosition(phi(135));
+                            break;
+                          case 3;
+                          case 6;
+                          case 9;
+                          case 12;
+                            servo.setPosition(phi(315));
+                            break;
+                        }
+                  }
+              }
+              else {
+                //何も動かさない、最初から選択
+              }
 
-        //目的地到着後（シュート）
-        is_waiting_for_input = true;
-        gamepad_input_to_command();
-        is_waiting_for_input = false;
-        if (gui.getCommand().isHigher) {
-          take_down(z_height.z_down_2nd_release);
-        } else {
-          take_down(z_height.z_down_release);
-        }
-        is_waiting_for_input = true;
-        gamepad_input_to_command();  //下した後の微調節、いるか要検討(落とすときはいるのかな)
-        is_waiting_for_input = false;
-        release_jaga();
-        // if(finished)
-        take_up();
-        break;
-      default:
-        break;
-    }
-  }
-}
+              //目的地到着後（シュート）
+              is_waiting_for_input = true;
+              gamepad_input_to_command();
+              is_waiting_for_input = false;
+              if (gui.getCommand().isHigher) {
+                take_down(z_height.z_down_2nd_release);
+              } else {
+                take_down(z_height.z_down_release);
+              }
+              is_waiting_for_input = true;
+              gamepad_input_to_command();  //下した後の微調節、いるか要検討(落とすときはいるのかな)
+              is_waiting_for_input = false;
+              release_jaga();
+              // if(finished)
+              take_up();
+              break;
+              default:
+                            break;
+                    }
+                  }
+          }
 
-/*
-  while (true) {
-    printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
-           motor.getPositionProgress() * 100);
-  } */
+  /*
+    while (true) {
+      printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
+             motor.getPositionProgress() * 100);
+    } */
