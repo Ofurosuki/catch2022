@@ -33,16 +33,16 @@ void Gamepad::pcCallback(uint8_t* data, size_t size) {
   hat[0] = (hatState & 0x01) + (hatState >> 1 & 0x01) * -1;
   hat[1] = (hatState >> 2 & 0x01) + (hatState >> 3 & 0x01) * -1;
 
-  // for (size_t i = 0; i < buttonNum; i++) {
-  //   bool prevButton = button[i];
-  //   button[i] = data[6 + i / 8] & (1 << (i % 8));
-  //   if (button[i] != prevButton) {
-  //     if (buttonCallbacks[i][Both]) buttonCallbacks[i][Both]();
-  //     if (button[i]) {
-  //       if (buttonCallbacks[i][Down]) buttonCallbacks[i][Down]();
-  //     } else {
-  //       if (buttonCallbacks[i][Up]) buttonCallbacks[i][Up]();
-  //     }
-  //   }
-  // }
+  for (size_t i = 0; i < buttonNum; i++) {
+    bool prevButton = button[i];
+    button[i] = data[6 + i / 8] & (1 << (i % 8));
+    // if (button[i] != prevButton) {
+    //   if (buttonCallbacks[i][Both]) buttonCallbacks[i][Both]();
+    //   if (button[i]) {
+    //     if (buttonCallbacks[i][Down]) buttonCallbacks[i][Down]();
+    //   } else {
+    //     if (buttonCallbacks[i][Up]) buttonCallbacks[i][Up]();
+    //   }
+    // }
+  }
 }
