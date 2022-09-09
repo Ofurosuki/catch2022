@@ -18,11 +18,14 @@ DigitalIn button(BUTTON1);
 int main() {
   manager.begin();
   printf("start\n");
-
+  float counter = 0;
   while (true) {
-    motor.setMode(Motor::Mode::Voltage);
-    motor.driveVoltage(1);
     printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
            motor.getPositionProgress() * 100);
+    motor.setMode(Motor::Mode::Voltage);
+    motor.driveVoltage(counter);
+    counter += 0.1;
+    if (counter >= 1) counter = -1;
+    ThisThread::sleep_for(100ms);
   }
 }
