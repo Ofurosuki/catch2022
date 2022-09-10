@@ -11,7 +11,8 @@ class Gui {
   };
   struct Command {
     CommandMode mode;
-    uint8_t destination;
+    uint8_t destination0;
+    uint8_t destination1;
     bool enableSuckers[3];
     bool isHigher;
   };
