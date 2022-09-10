@@ -10,7 +10,7 @@ void move_x1(float x1) {
   if (x1 < x1_max && x1 > 0.0f) {
     motor.drivePosition(x1 * revolution_per_x1);
   } else if (x1 >= x1_max) {
-    motor.drivePosition(x1_max);
+    motor.drivePosition(x1_max * revolution_per_x1);
   } else if (x1 <= 0) {
     motor.drivePosition(0);
   }
@@ -18,25 +18,21 @@ void move_x1(float x1) {
 float cal_theta(position pos) {
   if (pos.x - pos.x_1 == 0) {
     if (pos.y >= 0) {
-      return M_PI / 2;  // M_PI がよまれない
+      return 90.0f;
     } else {
-      return -M_PI / 2;
+      return -90.0f;
     }
   } else {
-    return atan(pos.y / (pos.x - pos.x_1));
+    return atan(pos.y / (pos.x - pos.x_1)) * M_PI / 180.0f;
   }
 }
 
-void move(position pos, bool is_common = 0) {
+void move(position pos, float phi = 45.0f) {
   float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
   stepper_theta.rotate(cal_theta(pos));
   stepper_r.rotate(r);
   move_x1(pos.x_1);
-  if (is_common) {
-    servo.setPosition(90.0f - cal_theta(pos));
-  } else {
-    servo.setPosition(jaga_3_degree - cal_theta(pos));
-  }
+  servo.setPosition(phi - cal_theta(pos));
 }
 
 void catch_jaga(float z) { stepper_z.rotate(z); }
@@ -45,7 +41,7 @@ void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1) {
   if (sucker0) solenoid.driveSingle(0, 1, delta_time_to_resuck);
   if (sucker1) solenoid.driveSingle(1, 1, delta_time_to_resuck);
   if (sucker2) solenoid.driveSingle(2, 1, delta_time_to_resuck);
-}  // 1を吸引解除ということに
+}  // 1は吸引解除
 
 void take_down(float z) { stepper_z.rotate(z); }
 void take_up() { stepper_z.rotate(z_height.z_up); }
