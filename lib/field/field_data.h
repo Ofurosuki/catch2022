@@ -25,3 +25,7 @@ extern position sharejaga[9];
 extern position shootRed[18];
 extern position shootBlue[18];
 extern position shoot[18];
+
+// Keita added
+extern position shootRwall[18];  // shootingBox Red の外周の座標
+extern position shootBwall[18];  // shootingBox Blue の外周の座標
