@@ -19,9 +19,7 @@ void CanManager::receive() {
 }
 
 void CanManager::send(Message msg) {
-  CANMessage canMsg;
-  canMsg.id = msg.hardId << 6 | msg.cmdId;
-  memcpy(canMsg.data, msg.data, 8);
+  CANMessage canMsg(msg.hardId << 6 | msg.cmdId, (char*)msg.data);
   can.write(canMsg);
 }
 

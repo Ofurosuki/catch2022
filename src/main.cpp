@@ -78,7 +78,7 @@ int main() {
     */
     getDegree();
     //以下でステッパーを動かすためのswitch文の条件を決める
-    const float DCVelocity = 10;
+    const float DCVelocity = (float)gamepad.getAxis(0) / 100;
     int StepVel1 = (gamepad.getAxis(1)) * 5;
     int StepVel2 = (gamepad.getAxis(2)) * 5;
     int StepVel3 = (gamepad.getAxis(3));
@@ -87,7 +87,8 @@ int main() {
     if ((abs(joyDeg0) <= M_PI / 12 || abs(joyDeg0) >= (M_PI / 12) * 11) &&
         abs(gamepad.getAxis(0)) >= 10) {
       // stepxを動かす
-      motor.driveVelocity(DCVelocity);
+      printf("dc");
+      motor.driveVoltage(DCVelocity);
       stepper0.rotate_vel(0);
     }
     // Dead zone
@@ -98,12 +99,12 @@ int main() {
       // stepθを+に動かす
       // gamepad.Axis(1)の値はマイナスなので正負入れ替えたほうがいいかも
       stepper0.rotate_vel(StepVel1);
-      motor.driveVelocity(0);
+      motor.driveVoltage(0);
       printf("theta\n");
     } else {
       // stepper止める
       stepper0.rotate_vel(0);
-      motor.driveVelocity(0);
+      motor.driveVoltage(0);
     }
 
     // Dead zone
@@ -135,19 +136,20 @@ int main() {
         printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
                motor.getPositionProgress() * 100);
       } */
-  }
-
-  //サーボモーターを動かす
-  const float ServoVelocity = 5;
-  if (gamepad.getButton(4) == 1) {
-    //反時計回り
-    //サーボの角度＝サーボの角度+5°
-    //みたいな感じで単発押しと長押しで角度調整できるようにする。
-    servo.setVelocity(-ServoVelocity);
-  } else if (gamepad.getButton(5) == 1) {
-    //時計回り
-    servo.setVelocity(ServoVelocity);
-  } else {
-    servo.setVelocity(0);
+    //サーボモーターを動かす
+    const float ServoVelocity = 50;
+    if (gamepad.getButton(4) == 1) {
+      //反時計回り
+      //サーボの角度＝サーボの角度+5°
+      //みたいな感じで単発押しと長押しで角度調整できるようにする。
+      printf("servo CCW\n");
+      servo.setVelocity(-ServoVelocity);
+    } else if (gamepad.getButton(5) == 1) {
+      //時計回り
+      printf("servo CW\n");
+      servo.setVelocity(ServoVelocity);
+    } else {
+      servo.setVelocity(0);
+    }
   }
 }
