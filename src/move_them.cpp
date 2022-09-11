@@ -2,11 +2,13 @@
 #include <math.h>
 #include <mbed.h>
 
+#include "Gui.h"
 #include "field_data.h"
 #include "main.h"
 
 void move_x1(float x1) {
-  const float revolution_per_x1 = 1.0f / 80.0f;
+  const float revolution_per_x1 =
+      (5.5495f / 312.0f + 6.403f / 362.0f + 6.2075f / 350.0f) / 3.0f;
   if (x1 < x1_max && x1 > 0.0f) {
     motor.drivePosition(x1 * revolution_per_x1);
   } else if (x1 >= x1_max) {
@@ -35,14 +37,30 @@ void move(position pos, float phi = 45.0f) {
     move_x1(pos.x_1);
   }
   servo.setPosition(phi - cal_theta(pos));
+  while (stepper_r.progress_cnt() <= 1.0f ||
+         stepper_theta.progress_cnt() <= 1.0f ||
+         motor.getPositionProgress() <= 100.0f) {
+    printf("progress:(r,theta,x1)=(%f,%f,%f)\n", stepper_r.progress_cnt() * 100,
+           stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
+    ThisThread::sleep_for(100ms);
+  }
+  printf("move to (%f,%f) completed.\n", pos.x, pos.y);
+}
+const int delta_time_to_resuck = 1000;
+void catch_jaga() {
+  if (gui.getCommand().enableSuckers[0])
+    solenoid.driveSingle(0, 1, delta_time_to_resuck);
+  //もう一回離すまでの時間ってどうなるのか
+  //もう一回司令が入ったら時間は上書きされるのか
 }
 
-void catch_jaga(float z) { stepper_z.rotate(z); }
-const int delta_time_to_resuck = 1000;
-void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1) {
-  if (sucker0) solenoid.driveSingle(0, 1, delta_time_to_resuck);
-  if (sucker1) solenoid.driveSingle(1, 1, delta_time_to_resuck);
-  if (sucker2) solenoid.driveSingle(2, 1, delta_time_to_resuck);
+void release_jaga() {
+  if (gui.getCommand().enableSuckers[0])
+    solenoid.driveSingle(0, 1, delta_time_to_resuck);
+  if (gui.getCommand().enableSuckers[1])
+    solenoid.driveSingle(1, 1, delta_time_to_resuck);
+  if (gui.getCommand().enableSuckers[2])
+    solenoid.driveSingle(2, 1, delta_time_to_resuck);
 }  // 1は吸引解除
 
 void take_down(float z) { stepper_z.rotate(z); }
