@@ -79,8 +79,8 @@ int main() {
     getDegree();
     //以下でステッパーを動かすためのswitch文の条件を決める
     const float DCVelocity = (float)gamepad.getAxis(0) / 100;
-    int StepVel1 = (gamepad.getAxis(1)) * 5;
-    int StepVel2 = (gamepad.getAxis(2)) * 5;
+    int StepVel1 = (gamepad.getAxis(1)) * 2;
+    int StepVel2 = (gamepad.getAxis(2)) * 2;
     int StepVel3 = (gamepad.getAxis(3));
     // Dead zone
     // stepXを動かす
