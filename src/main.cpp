@@ -49,7 +49,8 @@ void initialize(Team team) {
   // r最大値
 
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
-  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcCallback));
+  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
+  pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
 
   volatile bool init_finished[6] = {false, false, false, false, false, false};
 
@@ -150,7 +151,7 @@ int main() {
   ini();
   while (true) {
     is_waiting_for_input = true;
-    while (!gui.checkNewConfig()) {
+    while (!gui.checkNewVector()) {
     }
     is_waiting_for_input = false;
     pickedvac0 = gui.getCommand().destination0;

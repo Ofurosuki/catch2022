@@ -18,20 +18,25 @@ class Gui {
   };
 
   Gui() {}
-  void registerCallback(Callback<void(Command)> func) { callback = func; }
-  void removeCallback() { callback = nullptr; }
-  void pcCallback(uint8_t* data, size_t size);
+
+  void pcVectorCallback(uint8_t* data, size_t size);
+  void pcSuckerCallback(uint8_t* data, size_t size);
 
   Command getCommand() { return command; }
 
-  bool checkNewConfig() {
-    if (!newConfig) return false;
-    newConfig = false;
+  bool checkNewVector() {
+    if (!newVector) return false;
+    newVector = false;
+    return true;
+  }
+  bool checkNewSucker() {
+    if (!newSucker) return false;
+    newSucker = false;
     return true;
   }
 
  private:
-  Callback<void(Command)> callback;
   Command command;
-  bool newConfig = false;
+  bool newVector = false;
+  bool newSucker = false;
 };
