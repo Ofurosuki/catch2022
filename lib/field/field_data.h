@@ -1,10 +1,16 @@
 #pragma once
 enum Team { Red = 0, Blue };
-typedef struct {
+struct position {
   float x = 0;
   float y = 0;
   float x_1 = 0;
-} position;
+  bool operator==(const position& pos) const {
+    return (x == pos.x && y == pos.y && x_1 == pos.x_1);
+  }
+  bool operator!=(const position& pos) const {
+    return (x != pos.x || y != pos.y || x_1 != pos.x_1);
+  }
+};
 
 typedef struct {
   float z_up = 150.0;
