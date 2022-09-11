@@ -77,6 +77,9 @@ int main() {
      ↓    ↓
     */
     getDegree();
+    solenoid.driveSingle(0, gamepad.getButton(0));
+    solenoid.driveSingle(1, gamepad.getButton(1));
+    solenoid.driveSingle(2, gamepad.getButton(2));
     //以下でステッパーを動かすためのswitch文の条件を決める
     const float DCVelocity = (float)gamepad.getAxis(0) / 100;
     int StepVel1 = (gamepad.getAxis(1)) * 2;
