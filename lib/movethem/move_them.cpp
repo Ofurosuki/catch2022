@@ -28,10 +28,11 @@ float cal_theta(position pos) {
 }
 
 void move(position pos, float phi = 45.0f) {
+  if(pos!=here){
   float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
   stepper_theta.rotate(cal_theta(pos));
   stepper_r.rotate(r);
-  move_x1(pos.x_1);
+  move_x1(pos.x_1);}
   servo.setPosition(phi - cal_theta(pos));
 }
 

@@ -16,12 +16,13 @@ typedef struct {
   float z_down_2nd_release = 115.0f;
 
 } Z_height;
-
+extern position here;
 extern const float jaga_3_degree;
 extern const float x1_max;
 extern Z_height z_height;
 extern position jaga[16];
-extern position sharejaga[9];
+extern position sharejagaR[11];
+extern position sharejagaB[11];
 extern position shootRed[18];
 extern position shootBlue[18];
 extern position shoot[18];
