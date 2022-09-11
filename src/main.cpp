@@ -8,6 +8,7 @@
 #include <Solenoid.h>
 #include <config.h>
 #include <field_data.h>
+#include <main.h>
 #include <mbed.h>
 #include <move_them.h>
 #include <stepper.h>

@@ -1,9 +1,9 @@
 #pragma once
-#include <stepper_rotate.h>
-#include <Motor.h>
-#include <Solenoid.h>
-#include <Servo.h>
-#include <Gamepad.h>
+#include "Gamepad.h"
+#include "Motor.h"
+#include "Servo.h"
+#include "Solenoid.h"
+#include "stepper_rotate.h"
 
 extern rotate_stepper stepper_z;
 extern rotate_stepper stepper_theta;

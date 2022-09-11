@@ -1,7 +1,8 @@
 #pragma once
 #include <field_data.h>
+#include <main.h>
 #include <mbed.h>
-void move(position pos, float phi=45.0f);
+void move(position pos, float phi = 45.0f);
 float cal_theta(position pos);
 void catch_jaga(float z);
 void release_jaga(bool sucker0 = 1, bool sucker1 = 1, bool sucker2 = 1);
