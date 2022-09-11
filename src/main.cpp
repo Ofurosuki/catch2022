@@ -38,11 +38,10 @@ DigitalIn button(BUTTON1);
 static bool is_waiting_for_input = true;
 static bool is_Red;
 
-
 void initialize(Team team) {
   manager.begin();
   const int stepper_vel_for_init = 10;
-  const float motor_voltage_for_init = 1.0;
+  const float motor_voltage_for_init = 0.15;
   const float revolution_num_rightside = 100.1;
   //右端についたときの回転数
   const int step_num_maxium = 500;
@@ -51,36 +50,53 @@ void initialize(Team team) {
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
   pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcCallback));
 
-  sensor.registerCallback(0, [=](uint8_t, bool) {
+  volatile bool init_finished[6] = {false, false, false, false, false, false};
+
+  char serialBuf[64] = "";
+
+  sensor.registerCallback(0, [&](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(0);
-    printf("x1 :left limit detected\n");
+    init_finished[0] = true;
+    sprintf(serialBuf, "x1 :left limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
   });
-
-  sensor.registerCallback(1, [=](uint8_t, bool) {
+  sensor.registerCallback(1, [&](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(revolution_num_rightside);
-    printf("x1 :right limit detected\n");
+    init_finished[1] = true;
+    sprintf(serialBuf, "x1 :right limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
   });
-  sensor.registerCallback(2, [=](uint8_t, bool) {
+  sensor.registerCallback(2, [&](uint8_t, bool) {
     stepper_r.reset(0);
-    printf("r :minimum limit detected\n");
+    init_finished[2] = true;
+    sprintf(serialBuf, "r :minimum limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
   });
 
-  sensor.registerCallback(3, [=](uint8_t, bool) {
+  sensor.registerCallback(3, [&](uint8_t, bool) {
     stepper_r.reset(step_num_maxium);
-    printf("r :maximum limit detected\n");
+    init_finished[3] = true;
+    sprintf(serialBuf, "r :maximum limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
   });
-  sensor.registerCallback(4, [=](uint8_t, bool) {
+  sensor.registerCallback(4, [&](uint8_t, bool) {
     stepper_z.reset(0);
-    printf("z :maximum limit detected\n");
+    init_finished[4] = true;
+    sprintf(serialBuf, "z :maximum limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
   });
-  sensor.registerCallback(5, [=](uint8_t, bool) {
+  sensor.registerCallback(5, [&](uint8_t, bool) {
     stepper_theta.reset(0);
-    printf("theta :zero point adjustment detected\n");
+    init_finished[5] = true;
+    sprintf(serialBuf, "theta :zero point adjustment detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
   });
 
   servo.setPosition(0);  // reset servo
+  stepper_theta.rotate_vel(stepper_vel_for_init);
+  stepper_z.rotate_vel(stepper_vel_for_init);
   if (team) {
     motor.driveVoltage(-motor_voltage_for_init);
     stepper_r.rotate_vel(stepper_vel_for_init);
@@ -99,16 +115,25 @@ void initialize(Team team) {
     // sw1　にむかって押す(red)
     // theta=0 へ向かったあと、theta=180に向かう
   }
+  while (init_finished[0] || init_finished[1] || init_finished[2] ||
+         init_finished[3] || init_finished[4] || init_finished[5]) {
+  }
+  if (team) {
+    stepper_theta.rotate(-180);
+    while (stepper_theta.progress_cnt() < 0.99) {
+    }
+    stepper_theta.reset(180);
+  }
 }
 
 void ini() {
-  sensor.registerCallback(0, [=](uint8_t, bool) {
+  sensor.registerCallback(0, [&](uint8_t, bool) {
     initialize(Blue);
     printf("team: we're blue team.\n");
     is_waiting_for_input = false;
     is_Red = false;
   });
-  sensor.registerCallback(1, [=](uint8_t, bool) {
+  sensor.registerCallback(1, [&](uint8_t, bool) {
     initialize(Red);
     printf("team: we're red team.\n");
     is_waiting_for_input = false;
