@@ -12,3 +12,4 @@ extern Motor motor;
 extern Servo servo;
 extern Solenoid solenoid;
 extern Gamepad gamepad;
+extern Gui gui;
