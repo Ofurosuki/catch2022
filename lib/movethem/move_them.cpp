@@ -1,12 +1,13 @@
 #define M_PI 3.1415926
+#include <main.h>
 #include <math.h>
 #include <mbed.h>
 
 #include "field_data.h"
-#include "main.h"
 
 void move_x1(float x1) {
-  const float revolution_per_x1 = 1.0f / 80.0f;
+  const float revolution_per_x1 =
+      (5.5495f / 312.0f + 6.403f / 362.0f + 6.2075f / 350.0f) / 3.0f;
   if (x1 < x1_max && x1 > 0.0f) {
     motor.drivePosition(x1 * revolution_per_x1);
   } else if (x1 >= x1_max) {
@@ -33,6 +34,11 @@ void move(position pos, float phi = 45.0f) {
   stepper_r.rotate(r);
   move_x1(pos.x_1);
   servo.setPosition(phi - cal_theta(pos));
+  /*
+  while (!(stepper_r.progress_cnt() <= 1 && stepper_theta.progress_cnt() <= 1 &&
+           motor.getPositionProgress() <= 1)) {
+  }
+  */
 }
 
 void catch_jaga(float z) { stepper_z.rotate(z); }
