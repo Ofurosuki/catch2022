@@ -61,6 +61,7 @@ void Motor::resetPosition(float defaultPosition) {
 }
 
 float Motor::getPositionProgress() {
+  if (currentCommandPosition - startPosition == 0) return 0;
   return 1 - (currentCommandPosition - currentPosition) /
                  (currentCommandPosition - startPosition);
 }
