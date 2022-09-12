@@ -6,6 +6,7 @@ class rotate_stepper : public Stepper {
   float step_per_theta = 10;
   float theta_zero = 0;
   int step_mode = 1;
+  bool is_vel_moving = false;
 
  public:
   void rotate(float theta);
