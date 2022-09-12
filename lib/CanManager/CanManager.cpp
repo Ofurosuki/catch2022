@@ -20,7 +20,11 @@ void CanManager::receive() {
 
 void CanManager::send(Message msg) {
   CANMessage canMsg(msg.hardId << 6 | msg.cmdId, (char*)msg.data);
-  can.write(canMsg);
+  char counter = 0;
+  while (can.write(canMsg) != 1 && counter < 3) {
+    counter++;
+    wait_us(200);
+  }
 }
 
 void CanManager::registerCallback(uint32_t hardId,
