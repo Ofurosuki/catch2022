@@ -13,9 +13,14 @@ float rotate_stepper::progress_cnt() {
   if (target_step == 0) {
     return 0;
   } else {
-    return (float)(stp_counter / abs(target_step));
+    if (stp_counter == 0) {
+      return 1.0f;
+    } else {
+      return ((float)(stp_counter) / (float)(abs(target_step)));
+    }
   }
 }
+
 void rotate_stepper::set_theta_config(float theta_0, float stp_per_theta) {
   step_per_theta = stp_per_theta;
   theta_zero = theta_0;
@@ -34,4 +39,13 @@ void rotate_stepper::rotate_vel(int vel) {
     stepcycle = 0;
     set_config(freq_diff_tmp, freq_max, freq_ini);
   }
+}
+
+void rotate_stepper::emergency() {
+  stepcycle = 0;  // called when limit switch is on
+}
+
+void rotate_stepper::reset(int global_step) {
+  stepcycle = 0;
+  global_stp_counter = global_step;  // for theta
 }
