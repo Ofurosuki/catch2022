@@ -28,16 +28,24 @@ void rotate_stepper::set_theta_config(float theta_0, float stp_per_theta) {
 void rotate_stepper::set_step_mode(int num) { step_mode = num; }
 
 void rotate_stepper::rotate_vel(int vel) {
-  int freq_diff_tmp = freq_diff;
+  static int freq_diff_tmp;
+  static float freq_ini_tmp;
+  if (!is_vel_moving) {
+    freq_ini_tmp = freq_ini;
+    freq_diff_tmp = freq_diff;
+  }
   set_config(0, freq_max, vel);
-  if (vel >= 0) {
+  if (vel > 0) {
+    is_vel_moving = true;
     step(vel, INT_MAX);
   } else {
+    is_vel_moving = true;
     step(-vel, -INT_MAX);
   }
   if (vel == 0) {
+    is_vel_moving = false;
     stepcycle = 0;
-    set_config(freq_diff_tmp, freq_max, freq_ini);
+    set_config(freq_diff_tmp, freq_max, freq_ini_tmp);
   }
 }
 
