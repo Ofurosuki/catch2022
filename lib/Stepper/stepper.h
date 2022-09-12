@@ -36,6 +36,7 @@ class Stepper {
   int get_cnt();
   int get_stepcycle();
   int get_freq();
+  int get_global_cnt();
   void step(int freq_ini, int target_step);
   void set_config(int freq_difference, int freq_maxium, float ini_freq = 0);
   Stepper(PinName dir, PinName stp);

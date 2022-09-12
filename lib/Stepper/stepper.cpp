@@ -15,6 +15,7 @@ int Stepper::get_stp_counter() { return stp_counter; }
 int Stepper::get_cnt() { return cnt; }
 int Stepper::get_stepcycle() { return stepcycle; }
 int Stepper::get_freq() { return freq; }
+int Stepper::get_global_cnt() { return global_stp_counter; }
 
 bool Stepper::is_cw() {
   if (target_step >= 0) {
