@@ -9,13 +9,7 @@
 void move_x1(float x1) {
   const float revolution_per_x1 =
       (5.5495f / 312.0f + 6.403f / 362.0f + 6.2075f / 350.0f) / 3.0f;
-  if (x1 < x1_max && x1 > 0.0f) {
-    motor.drivePosition(x1 * revolution_per_x1);
-  } else if (x1 >= x1_max) {
-    motor.drivePosition(x1_max * revolution_per_x1);
-  } else if (x1 <= 0) {
-    motor.drivePosition(0);
-  }
+  motor.drivePosition(x1 * revolution_per_x1);
 }
 float cal_theta(position pos) {
   if (pos.x - pos.x_1 == 0) {
@@ -31,6 +25,7 @@ float cal_theta(position pos) {
 
 void move(position pos, float phi = 45.0f) {
   if (pos != here) {
+    if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
     float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
     stepper_theta.rotate(cal_theta(pos));
     stepper_r.rotate(r);
@@ -46,21 +41,29 @@ void move(position pos, float phi = 45.0f) {
   }
   printf("move to (%f,%f) completed.\n", pos.x, pos.y);
 }
-const int delta_time_to_resuck = 1000;
+// const int delta_time_to_resuck = 1000;
 void catch_jaga() {
-  if (gui.getCommand().enableSuckers[0])
-    solenoid.driveSingle(0, 1, delta_time_to_resuck);
-  //もう一回離すまでの時間ってどうなるのか
-  //もう一回司令が入ったら時間は上書きされるのか
+  if (!gui.getCommand().enableSuckers[0]) {
+    solenoid.driveSingle(0, 1, 0);
+  } else {
+    solenoid.driveSingle(0, 0, 0);
+  }
+  if (!gui.getCommand().enableSuckers[1]) {
+    solenoid.driveSingle(1, 1, 0);
+  } else {
+    solenoid.driveSingle(1, 0, 0);
+  }
+  if (!gui.getCommand().enableSuckers[2]) {
+    solenoid.driveSingle(2, 1, 0);
+  } else {
+    solenoid.driveSingle(2, 0, 0);
+  }
 }
 
 void release_jaga() {
-  if (gui.getCommand().enableSuckers[0])
-    solenoid.driveSingle(0, 1, delta_time_to_resuck);
-  if (gui.getCommand().enableSuckers[1])
-    solenoid.driveSingle(1, 1, delta_time_to_resuck);
-  if (gui.getCommand().enableSuckers[2])
-    solenoid.driveSingle(2, 1, delta_time_to_resuck);
+  if (!gui.getCommand().enableSuckers[0]) solenoid.driveSingle(0, 1, 0);
+  if (!gui.getCommand().enableSuckers[1]) solenoid.driveSingle(1, 1, 0);
+  if (!gui.getCommand().enableSuckers[2]) solenoid.driveSingle(2, 1, 0);
 }  // 1は吸引解除
 
 void take_down(float z) { stepper_z.rotate(z); }

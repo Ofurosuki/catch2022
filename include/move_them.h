@@ -11,4 +11,4 @@ void take_up();
 void gamepad_input_to_command();
 void getDegree();
 
-extern const int delta_time_to_resuck;
+// extern const int delta_time_to_resuck;

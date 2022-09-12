@@ -71,7 +71,7 @@ void Stepper::step_ctl() {  //割り込み関数  //call_interval micro second
     if (cnt >= stepcycle) {  //閾値を超えると
       cnt = 0;               //カウンタをリセット
       stp_counter++;         // ステップを１つしたカウント
-      if (is_cw()) {  //正転の場合グローバルカウンタを1足す、反転の場合1引く
+      if (_dir == 0) {  //正転の場合グローバルカウンタを1足す、反転の場合1引く
         global_stp_counter++;
       } else {
         global_stp_counter--;

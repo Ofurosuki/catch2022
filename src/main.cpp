@@ -144,7 +144,7 @@ void ini() {
 }
 int destinationBwall;  //青の壁側の座標
 int pickedvac0;        // 1st picked vacuum
-int pickedvac1;        // 2nd picked vacuum]
+int pickedvac1;        // 2nd picked vacuum
 int sharedir;
 
 int main() {
