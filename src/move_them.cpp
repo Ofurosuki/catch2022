@@ -24,17 +24,49 @@ float cal_theta(position pos) {
 }
 
 void move(position pos, float phi = 45.0f) {
-  if (pos != here) {
+  float modified_theta;
+  float r;
+  if (cal_theta(pos) <= phi && cal_theta(pos) + 180.0f) {
+    servo.setPosition(phi - cal_theta(pos));
     if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
-    float r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
+    r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
+    if (r >= r_max) r = r_max;
     stepper_theta.rotate(cal_theta(pos));
     stepper_r.rotate(r);
     move_x1(pos.x_1);
+  } else {
+    if (0.0f <= cal_theta(pos) && cal_theta(pos) <= 90.0f) {
+      if ((cal_theta(pos) + 270.0f <= phi && phi <= 360.0f) ||
+          (cal_theta(pos) >= 0.0f && phi <= cal_theta(pos))) {
+        modified_theta = phi;
+      } else {
+        modified_theta = 180.0f - phi;
+      }
+    } else if (90.0f <= cal_theta(pos) && cal_theta(pos) <= 180.0f) {
+      if (cal_theta(pos) - 90.0f <= phi && phi <= cal_theta(pos)) {
+        modified_theta = phi;
+      } else {
+        modified_theta = 180.0f - phi;
+      }
+    } else if (180.0f <= cal_theta(pos) && cal_theta(pos) <= 360.0f) {
+      if (cal_theta(pos) - 90.0f <= phi && phi <= cal_theta(pos)) {
+        modified_theta = phi;
+      } else {
+        modified_theta = phi + 180.0f;
+      }
+    }
+    if (modified_theta == 0.0f || modified_theta == 180.0f) {
+      r = r_max;
+      stepper_r.rotate(r);
+    } else {
+      r = pos.x / sin(modified_theta * M_PI / 180.0f);
+      stepper_r.rotate(r);
+    }
+    move_x1(pos.x - r * cos(cal_theta(pos)));
   }
-  servo.setPosition(phi - cal_theta(pos));
   while (stepper_r.progress_cnt() <= 1.0f ||
          stepper_theta.progress_cnt() <= 1.0f ||
-         motor.getPositionProgress() <= 100.0f) {
+         motor.getPositionProgress() <= 0.99f) {
     printf("progress:(r,theta,x1)=(%f,%f,%f)\n", stepper_r.progress_cnt() * 100,
            stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
     ThisThread::sleep_for(100ms);
