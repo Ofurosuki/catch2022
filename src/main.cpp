@@ -258,7 +258,7 @@ int main() {
               case 12:
                 break;
               case 15:
-                move(shootBwall[pickedvac1], 315.0f);
+                move(shootBwall[pickedvac1], 45.0f);
                 break;
               case 16:
                 break;
