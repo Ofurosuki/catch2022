@@ -40,7 +40,6 @@ static bool is_waiting_for_input = true;
 static bool is_Red;
 
 void initialize(Team team) {
-  manager.begin();
   stepper_r.set_theta_config(240.0f, 545.0f / 814.0f);
   stepper_theta.set_theta_config(0, 180.0f / 794.0f);
   const int stepper_vel_for_init = 10;
@@ -126,6 +125,7 @@ void initialize(Team team) {
 }
 
 void ini() {
+  manager.begin();
   while (!sensor.getState(0) && !sensor.getState(1)) {
     ThisThread::sleep_for(100ms);
   }
