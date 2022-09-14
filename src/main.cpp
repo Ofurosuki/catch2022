@@ -52,56 +52,51 @@ void initialize(Team team) {
   pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
   pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
 
-  volatile bool init_finished[6] = {false, false, false, false, false, false};
+  volatile bool theta_initialized = false;
 
   char serialBuf[64] = "";
 
   sensor.registerCallback(0, [&](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(0);
-    init_finished[0] = true;
     sprintf(serialBuf, "x1 :left limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(1, [&](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(revolution_num_rightside);
-    init_finished[1] = true;
     sprintf(serialBuf, "x1 :right limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(2, [&](uint8_t, bool) {
     stepper_r.reset(0);
-    init_finished[2] = true;
     sprintf(serialBuf, "r :minimum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
 
   sensor.registerCallback(3, [&](uint8_t, bool) {
     stepper_r.reset(step_num_maxium);
-    init_finished[3] = true;
     sprintf(serialBuf, "r :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(4, [&](uint8_t, bool) {
     stepper_z.reset(0);
-    init_finished[4] = true;
     sprintf(serialBuf, "z :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(5, [&](uint8_t, bool) {
     stepper_theta.reset(0);
-    init_finished[5] = true;
+    theta_initialized = true;
     sprintf(serialBuf, "theta :zero point adjustment detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
 
   servo.setPosition(0);  // reset servo
-  stepper_theta.rotate_vel(stepper_vel_for_init);
-  stepper_z.rotate_vel(stepper_vel_for_init);
+  if (!sensor.getState(5)) stepper_theta.rotate_vel(stepper_vel_for_init);
+  if (!sensor.getState(4)) stepper_z.rotate_vel(stepper_vel_for_init);
+  if (!sensor.getState(3)) stepper_r.rotate_vel(stepper_vel_for_init);
   if (team) {
-    motor.driveVoltage(-motor_voltage_for_init);
-    stepper_r.rotate_vel(stepper_vel_for_init);
+    if (!sensor.getState(0)) motor.driveVoltage(-motor_voltage_for_init);
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootBlue[i];
     }
@@ -109,16 +104,16 @@ void initialize(Team team) {
 
     // theta=0が基準点
   } else {
-    motor.driveVoltage(motor_voltage_for_init);
-    stepper_r.rotate_vel(stepper_vel_for_init);
+    if (!sensor.getState(1)) motor.driveVoltage(motor_voltage_for_init);
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootRed[i];
     }
     // sw1　にむかって押す(red)
     // theta=0 へ向かったあと、theta=180に向かう
   }
-  while (init_finished[0] || init_finished[1] || init_finished[2] ||
-         init_finished[3] || init_finished[4] || init_finished[5]) {
+  while (!((sensor.getState(0) || sensor.getState(1)) && sensor.getState(3) &&
+           sensor.getState(4) && theta_initialized)) {
+    ThisThread::sleep_for(1ms);
   }
   if (team) {
     stepper_theta.rotate(-180);
@@ -129,18 +124,19 @@ void initialize(Team team) {
 }
 
 void ini() {
-  sensor.registerCallback(0, [&](uint8_t, bool) {
+  while (!sensor.getState(0) && !sensor.getState(1)) {
+  }
+  if (sensor.getState(0)) {
     initialize(Blue);
     printf("team: we're blue team.\n");
     is_waiting_for_input = false;
     is_Red = false;
-  });
-  sensor.registerCallback(1, [&](uint8_t, bool) {
+  } else {
     initialize(Red);
     printf("team: we're red team.\n");
     is_waiting_for_input = false;
     is_Red = true;
-  });
+  }
 }
 int destinationBwall;  //青の壁側の座標
 int pickedvac0;        // 1st picked vacuum
@@ -151,7 +147,9 @@ int main() {
   ini();
   while (true) {
     is_waiting_for_input = true;
+    printf("waiting for vector input...\n");
     while (!gui.checkNewVector()) {
+      ThisThread::sleep_for(100ms);
     }
     is_waiting_for_input = false;
     pickedvac0 = gui.getCommand().destination0;
@@ -160,21 +158,6 @@ int main() {
 
     switch (gui.getCommand().mode) {
       case gui.CommandMode::ownArea:
-        move(jaga[gui.getCommand().destination1]);
-        // move(sharejaga[gui.getCommand().destination1]);
-        //目的地到着後（シュート）
-        is_waiting_for_input = true;
-        gamepad_input_to_command();
-        is_waiting_for_input = false;
-        take_down(z_height.z_down);
-        is_waiting_for_input = true;
-        gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
-        is_waiting_for_input = false;
-        take_down(z_height.z_down_take);
-        catch_jaga();
-        ThisThread::sleep_for(2000ms);
-        take_up();
-
         //場所と方向をGUIで指定して取るとき 青赤共通
         if (pickedvac0 > pickedvac1) {
           if (((pickedvac1) % 2 == 0 &&
@@ -193,6 +176,20 @@ int main() {
           }
         }
         //場所方向指定ここまで
+        // move(sharejaga[gui.getCommand().destination1]);
+        //目的地到着後（シュート）
+        is_waiting_for_input = true;
+        gamepad_input_to_command();
+        is_waiting_for_input = false;
+        take_down(z_height.z_down);
+        is_waiting_for_input = true;
+        gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
+        is_waiting_for_input = false;
+        take_down(z_height.z_down_take);
+        catch_jaga();
+        ThisThread::sleep_for(2000ms);
+        take_up();
+
         break;
 
       case gui.CommandMode::commonArea:
@@ -248,33 +245,22 @@ int main() {
             switch (pickedvac0) {
                 //選んだ場所によってサーボの角度調節（このスイッチ文大丈夫？）
               case 0:
-                break;
               case 1:
-                break;
               case 2:
-                break;
               case 3:
-                break;
               case 6:
-                break;
               case 9:
-                break;
               case 12:
-                break;
               case 15:
-                move(shootBwall[pickedvac1], 315.0f);
+                move(shootBwall[pickedvac1], 45.0f);
                 break;
               case 16:
-                break;
               case 17:
                 move(shootBwall[pickedvac1], 45.0f);
                 break;
               case 5:
-                break;
               case 8:
-                break;
               case 11:
-                break;
               case 14:
                 move(shootBwall[pickedvac1], 135.0f);
                 break;
@@ -303,33 +289,22 @@ int main() {
             //中心はシューティングボックスの外側の座標に合わせて移動（field_data.hに追加済み）
             switch (pickedvac0) {
               case 0:
-                break;
               case 1:
-                break;
               case 2:
-                break;
               case 5:
-                break;
               case 8:
-                break;
               case 11:
-                break;
               case 14:
-                break;
               case 17:
                 move(shootRwall[pickedvac1], 225.0f);
                 break;
               case 15:
-                break;
               case 16:
                 move(shootRwall[pickedvac1], 135.0f);
                 break;
               case 3:
-                break;
               case 6:
-                break;
               case 9:
-                break;
               case 12:
                 move(shootRwall[pickedvac1], 315.0f);
                 break;
