@@ -19,7 +19,11 @@ float cal_theta(position pos) {
       return -90.0f;
     }
   } else {
-    return atan(pos.y / (pos.x - pos.x_1)) * M_PI / 180.0f;
+    if ((pos.x - pos.x_1) <= 0 && pos.y <= 0) {
+      return atan2(pos.y, (pos.x - pos.x_1)) * M_PI / 180.0f + 360.0f;
+    } else {
+      return atan2(pos.y, (pos.x - pos.x_1)) * M_PI / 180.0f;
+    }
   }
 }
 
@@ -71,7 +75,7 @@ void move(position pos, float phi = 45.0f) {
            stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
     ThisThread::sleep_for(100ms);
   }
-  printf("move to (%f,%f) completed.\n", pos.x, pos.y);
+  printf("move to (%f,%f,) completed.\n", pos.x, pos.y);
 }
 // const int delta_time_to_resuck = 1000;
 void catch_jaga() {

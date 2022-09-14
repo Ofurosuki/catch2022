@@ -6,7 +6,7 @@
 #include "math.h"
 
 Stepper::Stepper(PinName dir, PinName stp) : _dir(dir), _stp(stp) {
-  _dir = 0;  // 0で正転
+  _dir = 1;  // 1で正転
   _stp = 0;
   ticker.attach(callback(this, &Stepper::step_ctl), 100us);
 }
@@ -26,10 +26,10 @@ bool Stepper::is_cw() {
 void Stepper::step(int freq_ini, int target_stp) {
   target_step = target_stp;
   if (is_cw()) {
-    _dir = 0;
+    _dir = 1;
     target_step = target_stp;
   } else {
-    _dir = 1;
+    _dir = 0;
     target_step = -target_stp;
   }
   stp_counter = 0;  // reset local step counter
@@ -71,7 +71,7 @@ void Stepper::step_ctl() {  //割り込み関数  //call_interval micro second
     if (cnt >= stepcycle) {  //閾値を超えると
       cnt = 0;               //カウンタをリセット
       stp_counter++;         // ステップを１つしたカウント
-      if (_dir == 0) {  //正転の場合グローバルカウンタを1足す、反転の場合1引く
+      if (_dir == 1) {  //正転の場合グローバルカウンタを1足す、反転の場合1引く
         global_stp_counter++;
       } else {
         global_stp_counter--;
