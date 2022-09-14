@@ -76,6 +76,10 @@ void move(position pos, float phi = 45.0f) {
 }
 // const int delta_time_to_resuck = 1000;
 void catch_jaga() {
+  if (!gui.checkNewSucker()) printf("waiting sucker input...\n");
+  while (!gui.checkNewSucker()) {
+    ThisThread::sleep_for(100ms);
+  }
   if (!gui.getCommand().enableSuckers[0]) {
     solenoid.driveSingle(0, 1, 0);
   } else {
@@ -99,8 +103,16 @@ void release_jaga() {
   if (!gui.getCommand().enableSuckers[2]) solenoid.driveSingle(2, 1, 0);
 }  // 1は吸引解除
 
-void take_down(float z) { stepper_z.rotate(z); }
-void take_up() { stepper_z.rotate(z_height.z_up); }
+void take_down(float z) {
+  stepper_z.rotate(z);
+  while (stepper_z.progress_cnt() < 1.0f) {
+  }
+}
+void take_up() {
+  stepper_z.rotate(z_height.z_up);
+  while (stepper_z.progress_cnt() < 1.0f) {
+  }
+}
 
 float joyDeg0;
 float joyDeg1;
@@ -116,6 +128,7 @@ void getDegree() {
 }
 
 void gamepad_input_to_command() {
+  printf("Please input gamepad\n");
   while (gamepad.getButton(1) == 0) {
     getDegree();
     const float DCVelocity = (float)gamepad.getAxis(0) / 100;

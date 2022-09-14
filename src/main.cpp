@@ -147,6 +147,7 @@ int main() {
   ini();
   while (true) {
     is_waiting_for_input = true;
+    printf("waiting for vector input...\n");
     while (!gui.checkNewVector()) {
       ThisThread::sleep_for(100ms);
     }
