@@ -69,9 +69,9 @@ void move(position pos, float phi = 45.0f) {
     }
     move_x1(pos.x - r * cos(cal_theta(pos)));
   }
-  while (stepper_r.progress_cnt() <= 1.0f ||
-         stepper_theta.progress_cnt() <= 1.0f ||
-         motor.getPositionProgress() <= 0.99f) {
+  while (stepper_r.progress_cnt() < 1.0f ||
+         stepper_theta.progress_cnt() < 1.0f ||
+         motor.getPositionProgress() < 0.99f) {
     printf("progress:(r,theta,x1)=(%f,%f,%f)\n", stepper_r.progress_cnt() * 100,
            stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
     ThisThread::sleep_for(100ms);
