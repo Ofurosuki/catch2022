@@ -148,6 +148,7 @@ int main() {
   while (true) {
     is_waiting_for_input = true;
     while (!gui.checkNewVector()) {
+      ThisThread::sleep_for(100ms);
     }
     is_waiting_for_input = false;
     pickedvac0 = gui.getCommand().destination0;
@@ -156,21 +157,6 @@ int main() {
 
     switch (gui.getCommand().mode) {
       case gui.CommandMode::ownArea:
-        move(jaga[gui.getCommand().destination1]);
-        // move(sharejaga[gui.getCommand().destination1]);
-        //目的地到着後（シュート）
-        is_waiting_for_input = true;
-        gamepad_input_to_command();
-        is_waiting_for_input = false;
-        take_down(z_height.z_down);
-        is_waiting_for_input = true;
-        gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
-        is_waiting_for_input = false;
-        take_down(z_height.z_down_take);
-        catch_jaga();
-        ThisThread::sleep_for(2000ms);
-        take_up();
-
         //場所と方向をGUIで指定して取るとき 青赤共通
         if (pickedvac0 > pickedvac1) {
           if (((pickedvac1) % 2 == 0 &&
@@ -189,6 +175,20 @@ int main() {
           }
         }
         //場所方向指定ここまで
+        // move(sharejaga[gui.getCommand().destination1]);
+        //目的地到着後（シュート）
+        is_waiting_for_input = true;
+        gamepad_input_to_command();
+        is_waiting_for_input = false;
+        take_down(z_height.z_down);
+        is_waiting_for_input = true;
+        gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
+        is_waiting_for_input = false;
+        take_down(z_height.z_down_take);
+        catch_jaga();
+        ThisThread::sleep_for(2000ms);
+        take_up();
+
         break;
 
       case gui.CommandMode::commonArea:
