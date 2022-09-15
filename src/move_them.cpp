@@ -6,10 +6,10 @@
 #include "field_data.h"
 #include "main.h"
 
-void move_x1(float x1) {
+float move_x1(float x1) {
   const float revolution_per_x1 =
       (5.5495f / 312.0f + 6.403f / 362.0f + 6.2075f / 350.0f) / 3.0f;
-  motor.drivePosition(x1 * revolution_per_x1);
+  return (x1 * revolution_per_x1);
 }
 float cal_theta(position pos) {
   if (pos.x - pos.x_1 == 0) {
@@ -30,6 +30,7 @@ float cal_theta(position pos) {
 void move(position pos, float phi = 45.0f) {
   float modified_theta;
   float r;
+  float x1;
   if (cal_theta(pos) <= phi && phi <= cal_theta(pos) + 180.0f) {
     servo.setPosition(180 - (phi - cal_theta(pos)));
     if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
@@ -37,7 +38,7 @@ void move(position pos, float phi = 45.0f) {
     if (r >= r_max) r = r_max;
     stepper_theta.rotate(cal_theta(pos));
     stepper_r.rotate(r);
-    move_x1(pos.x_1);
+    x1 = move_x1(pos.x_1);
   } else {
     printf("theta modified\n");
     if (0.0f <= cal_theta(pos) && cal_theta(pos) <= 90.0f) {
@@ -69,15 +70,16 @@ void move(position pos, float phi = 45.0f) {
       stepper_r.rotate(r);
     }
     stepper_theta.rotate(modified_theta);
-    move_x1(pos.x - r * cos(modified_theta));
+    x1 = move_x1(pos.x - r * cos(modified_theta));
 
     servo.setPosition(180 - (phi - modified_theta));
   }
   while (stepper_r.progress_cnt() < 1.0f ||
          stepper_theta.progress_cnt() < 1.0f ||
-         motor.getPositionProgress() < 0.99f) {
+         motor.getCurrentPosition() - x1 < 0.05f) {
     printf("progress:(r,theta,x1)=(%f,%f,%f)\n", stepper_r.progress_cnt() * 100,
            stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
+    motor.drivePosition(x1);
     ThisThread::sleep_for(100ms);
   }
   printf("move to (%f,%f,) completed.\n", pos.x, pos.y);

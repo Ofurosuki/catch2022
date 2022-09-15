@@ -4,7 +4,7 @@ void Motor::receive(CanManager::Message msg) {
   if (msg.hardId != hardId) return;
   switch (msg.cmdId) {
     case 0x10:
-      currentPosition = -*(float*)msg.data;
+      currentPosition = *(float*)msg.data;
       break;
   }
 }
