@@ -3,7 +3,7 @@
 const float jaga_3_degree = 60.0;
 // 3連のじゃがりこのx軸に対してなす角
 //もし、シュートの角度が違えばさらに追加
-const float x1_max = 1000.0f;
+const float x1_max = 0.0f;
 const float r_max = 814.0f;
 
 Z_height z_height;
