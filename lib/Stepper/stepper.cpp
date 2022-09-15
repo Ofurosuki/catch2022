@@ -67,6 +67,12 @@ void Stepper::step_ctl() {  //割り込み関数  //call_interval micro second
         is_first = false;
       }
     }
+    // koko
+    if (freq <= 0) {
+      target_step = -target_step;
+      freq = -freq;
+    }
+    //
 
     stepcycle = 1.0f / freq * 10e5;
     if (cnt >= stepcycle) {  //閾値を超えると

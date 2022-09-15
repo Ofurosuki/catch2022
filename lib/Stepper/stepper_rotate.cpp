@@ -66,12 +66,12 @@ void rotate_stepper::rotate_acc(int acc) {
     }  // acc　max の設定
   }
   freq_diff = acc;
-  if (acc == 0)
-    ;
-  if (freq < 0) {
-    acc = -stop_acc;
-  } else {
-    acc = stop_acc;
+  if (acc == 0) {
+    if (freq < 0) {
+      acc = -stop_acc;
+    } else {
+      acc = stop_acc;
+    }
   }
   step(freq, INT_MAX);
   is_vel_moving = true;
