@@ -26,7 +26,7 @@ Solenoid solenoid(0x03, manager);
 Sensor sensor(0x04, manager);
 
 rotate_stepper stepper_z(DIR_z, STP_z);
-rotate_stepper stepper_theta(DIR_theta, STP_z);
+rotate_stepper stepper_theta(DIR_theta, STP_theta);
 rotate_stepper stepper_r(DIR_r, STP_r);
 
 PC pcConnector;
@@ -49,10 +49,6 @@ void initialize(Team team) {
   const int step_num_maxium = 500;
   // r最大値
 
-  pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
-  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
-  pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
-
   volatile bool theta_initialized = false;
 
   char serialBuf[64] = "";
@@ -70,22 +66,26 @@ void initialize(Team team) {
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(2, [&](uint8_t, bool) {
+    stepper_r.rotate_vel(0);
     stepper_r.reset(0);
     sprintf(serialBuf, "r :minimum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
 
   sensor.registerCallback(3, [&](uint8_t, bool) {
+    stepper_r.rotate_vel(0);
     stepper_r.reset(step_num_maxium);
     sprintf(serialBuf, "r :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(4, [&](uint8_t, bool) {
+    stepper_z.rotate_vel(0);
     stepper_z.reset(0);
     sprintf(serialBuf, "z :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(5, [&](uint8_t, bool) {
+    stepper_theta.rotate_vel(0);
     stepper_theta.reset(0);
     theta_initialized = true;
     sprintf(serialBuf, "theta :zero point adjustment detected\n");
@@ -93,11 +93,7 @@ void initialize(Team team) {
   });
 
   servo.setPosition(0);  // reset servo
-  if (!sensor.getState(5)) stepper_theta.rotate_vel(stepper_vel_for_init);
-  if (!sensor.getState(4)) stepper_z.rotate_vel(stepper_vel_for_init);
-  if (!sensor.getState(3)) stepper_r.rotate_vel(stepper_vel_for_init);
   if (team == Blue) {
-    if (!sensor.getState(0)) motor.driveVoltage(motor_voltage_for_init);
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootBlue[i];
     }
@@ -105,18 +101,29 @@ void initialize(Team team) {
 
     // theta=0が基準点
   } else {
-    if (!sensor.getState(1)) motor.driveVoltage(motor_voltage_for_init);
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootRed[i];
     }
     // sw1　にむかって押す(red)
     // theta=0 へ向かったあと、theta=180に向かう
   }
+  ThisThread::sleep_for(10ms);
+  if (!sensor.getState(5)) stepper_theta.rotate_vel(-stepper_vel_for_init);
+  if (!sensor.getState(4)) stepper_z.rotate_vel(stepper_vel_for_init);
+  if (!sensor.getState(3)) stepper_r.rotate_vel(stepper_vel_for_init);
+  motor.reset();
+  ThisThread::sleep_for(10ms);
+
   while (!((sensor.getState(0) || sensor.getState(1)) && sensor.getState(3) &&
            sensor.getState(4) && theta_initialized)) {
+    if (team == Blue) {
+      if (!sensor.getState(1)) motor.driveVoltage(-motor_voltage_for_init);
+    } else {
+      if (!sensor.getState(1)) motor.driveVoltage(-motor_voltage_for_init);
+    }
     ThisThread::sleep_for(1ms);
   }
-  if (team) {
+  if (team == Red) {
     stepper_theta.rotate(-180);
     while (stepper_theta.progress_cnt() < 0.99) {
     }
@@ -126,6 +133,9 @@ void initialize(Team team) {
 
 void ini() {
   manager.begin();
+  pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
+  pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
   while (!sensor.getState(0) && !sensor.getState(1)) {
     ThisThread::sleep_for(100ms);
   }

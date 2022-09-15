@@ -134,28 +134,30 @@ void getDegree() {
 void gamepad_input_to_command() {
   printf("Please input gamepad\n");
   while (gamepad.getButton(1) == 0) {
+    printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
+           gamepad.getAxis(2), gamepad.getAxis(3));
     getDegree();
-    const float DCVelocity = (float)gamepad.getAxis(0) / 100;
-    int StepVel1 = (gamepad.getAxis(1)) * 2;
-    int StepVel2 = (gamepad.getAxis(2)) * 2;
-    int StepVel3 = (gamepad.getAxis(3));
+    const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
+    int StepVel1 = -(gamepad.getAxis(1)) * 2;
+    int StepVel2 = -(gamepad.getAxis(2)) * 2;
+    int StepVel3 = -(gamepad.getAxis(3)) * 2;
 
     // stepXを動かす
     if ((abs(joyDeg0) <= M_PI / 12 || abs(joyDeg0) >= (M_PI / 12) * 11) &&
         abs(gamepad.getAxis(0)) >= 10) {
       // stepxを動かす
       motor.driveVoltage(DCVelocity);
-      stepper_theta.rotate_vel(0);
+      stepper_r.rotate_vel(0);
     }
     // stepシータを動かす
     else if ((abs(joyDeg0) >= (M_PI / 12) * 5 &&
               abs(joyDeg0) <= (M_PI / 12) * 7) &&
              abs(gamepad.getAxis(1)) >= 10) {
-      stepper_theta.rotate_vel(StepVel1);
+      stepper_r.rotate_vel(StepVel1);
       motor.driveVoltage(0);
     } else {
       // stepper, DC止める
-      stepper_theta.rotate_vel(0);
+      stepper_r.rotate_vel(0);
       motor.driveVoltage(0);
     }
 
@@ -163,7 +165,7 @@ void gamepad_input_to_command() {
     if ((abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) &&
         abs(gamepad.getAxis(2)) >= 10) {
       // stepRを動かす
-      stepper_r.rotate_vel(StepVel2);
+      stepper_theta.rotate_vel(StepVel2);
       stepper_z.rotate_vel(0);
     }
     // step上下を動かす
@@ -172,10 +174,10 @@ void gamepad_input_to_command() {
              (abs(gamepad.getAxis(3)) >= 10)) {
       // step上下に動かす
       stepper_z.rotate_vel(StepVel3);
-      stepper_r.rotate_vel(0);
+      stepper_theta.rotate_vel(0);
     } else {
       // stepper止める
-      stepper_r.rotate_vel(0);
+      stepper_theta.rotate_vel(0);
       stepper_z.rotate_vel(0);
     }
     //サーボモーターを動かす
