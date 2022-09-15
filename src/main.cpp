@@ -205,7 +205,7 @@ int main() {
           if (((pickedvac1) % 2 == 0 &&
                (pickedvac0) % 2 == 0) ||                       // 0=even&1=odd
               ((pickedvac1) % 2 != 0 && (pickedvac0 != 0))) {  // 0=odd&1=even
-            move(jaga[pickedvac1], 315.0f);
+            move(jaga[pickedvac1], -45.0f);
           } else {
             move(jaga[pickedvac1], 45.0f);
           }
@@ -214,7 +214,7 @@ int main() {
               ((pickedvac0) % 2 != 0 && (pickedvac1) % 2 != 0)) {
             move(jaga[pickedvac1], 135.0f);
           } else {
-            move(jaga[pickedvac1], 225.0f);
+            move(jaga[pickedvac1], -135.0f);
           }
         }
         //場所方向指定ここまで
@@ -239,7 +239,7 @@ int main() {
           if (sharedir == 9) {
             move(sharejagaB[pickedvac0], 90.0f);
           } else if (pickedvac1 == 10) {
-            move(sharejagaB[pickedvac0], 270.0f);
+            move(sharejagaB[pickedvac0], -90.0f);
           } else {
             move(sharejagaB[pickedvac0], 90.0f);
           }
@@ -247,7 +247,7 @@ int main() {
           if (sharedir == 10) {
             move(sharejagaR[pickedvac0], 90.0f);
           } else if (sharedir == 9) {
-            move(sharejagaR[pickedvac0], 270.0f);
+            move(sharejagaR[pickedvac0], -90.0f);
           } else {
             move(sharejagaR[pickedvac0], 90.0f);
           }
@@ -280,12 +280,26 @@ int main() {
               (pickedvac0 == 14 && pickedvac1 == 16) ||
               (pickedvac0 == 1 && pickedvac1 == 3)) {
             move(shoot[pickedvac1], 45.0f);
+          } else if ((pickedvac0 == 6 && pickedvac1 == 4) ||
+                     (pickedvac0 == 9 && pickedvac1 == 7) ||
+                     (pickedvac0 == 12 && pickedvac1 == 10) ||
+                     (pickedvac0 == 15 && pickedvac1 == 13) ||
+                     (pickedvac0 == 3 && pickedvac1 == 1) ||
+                     (pickedvac0 == 16 && pickedvac1 == 14)) {
+            move(shoot[pickedvac1], -135.0f);
           } else if ((pickedvac0 == pickedvac1) &&
                      !(pickedvac0 == 4 || pickedvac0 == 7 || pickedvac0 == 10 ||
                        pickedvac0 == 13)) {
             //中心はシューティングボックスの外側の座標に合わせて移動（field_data.hに追加済み）
             switch (pickedvac0) {
                 //選んだ場所によってサーボの角度調節（このスイッチ文大丈夫？）
+              case 5:
+              case 8:
+              case 11:
+              case 14:
+              case 17:
+                move(shootBwall[pickedvac1], -135.0f);
+                break;
               case 0:
               case 1:
               case 2:
@@ -294,17 +308,11 @@ int main() {
               case 9:
               case 12:
               case 15:
-                move(shootBwall[pickedvac1], 45.0f);
+                move(shootBwall[pickedvac1], -45.0f);
                 break;
+              //以下例外、手動調整必要
               case 16:
-              case 17:
-                move(shootBwall[pickedvac1], 45.0f);
-                break;
-              case 5:
-              case 8:
-              case 11:
-              case 14:
-                move(shootBwall[pickedvac1], 135.0f);
+                move(shootBwall[12], -45.0f);
                 break;
               default:
                 break;
@@ -316,39 +324,51 @@ int main() {
 
         // ShootinBox REDまでの移動、サーボの角度
         if (is_Red == true) {
-          if ((pickedvac0 == 3 &&  // starting position and Degree
+          if ((pickedvac0 == 1 &&  // starting position and Degree
                                    // set for 4 center rows.
-               pickedvac1 == 1) ||
-              (pickedvac0 == 6 && pickedvac1 == 4) ||
-              (pickedvac0 == 9 && pickedvac1 == 7) ||
-              (pickedvac0 == 12 && pickedvac1 == 10) ||
-              (pickedvac0 == 15 && pickedvac1 == 13) ||
-              (pickedvac0 == 16 && pickedvac1 == 14)) {
-            move(shoot[pickedvac1], 225.0f);  // Position and Degree is ready
+               pickedvac1 == 5) ||
+              (pickedvac0 == 0 && pickedvac1 == 4) ||
+              (pickedvac0 == 3 && pickedvac1 == 7) ||
+              (pickedvac0 == 6 && pickedvac1 == 10) ||
+              (pickedvac0 == 9 && pickedvac1 == 13) ||
+              (pickedvac0 == 12 && pickedvac1 == 16)) {
+            move(shoot[pickedvac1], 135.0f);  // Position and Degree is ready
+          } else if ((pickedvac0 == 5 &&      // starting position and Degree
+                                              // set for 4 center rows.
+                      pickedvac1 == 1) ||
+                     (pickedvac0 == 8 && pickedvac1 == 4) ||
+                     (pickedvac0 == 11 && pickedvac1 == 7) ||
+                     (pickedvac0 == 14 && pickedvac1 == 10) ||
+                     (pickedvac0 == 17 && pickedvac1 == 13) ||
+                     (pickedvac0 == 16 && pickedvac1 == 12)) {
+            move(shoot[pickedvac1], -45.0f);
           } else if ((pickedvac0 == pickedvac1) &&
                      !(pickedvac0 == 4 || pickedvac0 == 7 || pickedvac0 == 10 ||
                        pickedvac0 == 13)) {
             //中心はシューティングボックスの外側の座標に合わせて移動（field_data.hに追加済み）
             switch (pickedvac0) {
-              case 0:
-              case 1:
               case 2:
               case 5:
               case 8:
               case 11:
               case 14:
-              case 17:
-                move(shootRwall[pickedvac1], 225.0f);
-                break;
-              case 15:
               case 16:
+              case 17:
                 move(shootRwall[pickedvac1], 135.0f);
                 break;
+              case 0:
               case 3:
               case 6:
               case 9:
+                move(shootRwall[pickedvac1], 45.0f);
+                break;
+              //ここから例外、手動操作必要
+              case 1:
+                move(shootRwall[pickedvac1], 135.0f);
+                break;
               case 12:
-                move(shootRwall[pickedvac1], 315.0f);
+              case 15:
+                move(shootRwall[pickedvac1], -135.0f);
                 break;
               default:
                 break;
