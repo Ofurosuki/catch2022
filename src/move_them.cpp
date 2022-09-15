@@ -34,7 +34,7 @@ void move(position pos, float phi = 45.0f) {
     servo.setPosition(180 - (phi - cal_theta(pos)));
   } else {
     printf("servo modified\n");
-    servo.setPosition(phi - cal_theta(pos));
+    servo.setPosition(-(phi - cal_theta(pos)));
   }
   if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
   r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
