@@ -33,47 +33,16 @@ void move(position pos, float phi = 45.0f) {
   float x1;
   if (cal_theta(pos) <= phi && phi <= cal_theta(pos) + 180.0f) {
     servo.setPosition(180 - (phi - cal_theta(pos)));
-    if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
-    r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
-    if (r >= r_max) r = r_max;
-    stepper_theta.rotate(cal_theta(pos));
-    stepper_r.rotate(r);
-    x1 = move_x1(pos.x_1);
   } else {
-    printf("theta modified\n");
-    if (0.0f <= cal_theta(pos) && cal_theta(pos) <= 90.0f) {
-      if ((cal_theta(pos) + 270.0f <= phi && phi <= 360.0f) ||
-          (0.0f <= phi && phi <= cal_theta(pos))) {
-        modified_theta = phi;
-      } else {
-        modified_theta = phi - 180.0f;
-      }
-    } else if (90.0f <= cal_theta(pos) && cal_theta(pos) <= 180.0f) {
-      if (cal_theta(pos) - 90.0f <= phi && phi <= cal_theta(pos)) {
-        modified_theta = phi;
-      } else {
-        modified_theta = phi - 180.0f;
-      }
-    } else if (180.0f <= cal_theta(pos) && cal_theta(pos) <= 360.0f) {
-      if (cal_theta(pos) - 90.0f <= phi && phi <= cal_theta(pos)) {
-        modified_theta = phi;
-      } else {
-        modified_theta = phi + 180.0f;
-      }
-    }
-    if (modified_theta == 0.0f || modified_theta == 180.0f) {
-      r = r_max;
-      stepper_r.rotate(r);
-    } else {
-      r = pos.x / sin(modified_theta * M_PI / 180.0f);
-      if (r >= r_max) r = r_max;
-      stepper_r.rotate(r);
-    }
-    stepper_theta.rotate(modified_theta);
-    x1 = move_x1(pos.x - r * cos(modified_theta));
-
-    servo.setPosition(180 - (phi - modified_theta));
+    printf("servo modified\n");
+    servo.setPosition(-(phi - cal_theta(pos)));
   }
+  if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
+  r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
+  if (r >= r_max) r = r_max;
+  stepper_theta.rotate(cal_theta(pos));
+  stepper_r.rotate(r);
+  x1 = move_x1(pos.x_1);
   while (stepper_r.progress_cnt() < 1.0f ||
          stepper_theta.progress_cnt() < 1.0f ||
          motor.getCurrentPosition() - x1 < 0.05f) {
