@@ -32,10 +32,10 @@ void move(position pos, float phi = 45.0f) {
   float r;
   float x1;
   if (cal_theta(pos) <= phi && phi <= cal_theta(pos) + 180.0f) {
-    servo.setPosition(180 - (phi - cal_theta(pos)));
+    servo.setPosition(cal_theta(pos) - phi);
   } else {
     printf("servo modified\n");
-    servo.setPosition(-(phi - cal_theta(pos)));
+    servo.setPosition(cal_theta(pos) - phi + 180.0f);
   }
   if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
   r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
@@ -43,9 +43,10 @@ void move(position pos, float phi = 45.0f) {
   stepper_theta.rotate(cal_theta(pos));
   stepper_r.rotate(r);
   x1 = move_x1(pos.x_1);
+  ThisThread::sleep_for(1s);
   while (stepper_r.progress_cnt() < 1.0f ||
          stepper_theta.progress_cnt() < 1.0f ||
-         motor.getCurrentPosition() - x1 < 0.05f) {
+         motor.getCurrentPosition() - x1 > 0.05f) {
     printf("progress:(r,theta,x1)=(%f,%f,%f)\n", stepper_r.progress_cnt() * 100,
            stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
     motor.drivePosition(x1);
@@ -111,7 +112,7 @@ void gamepad_input_to_command() {
   while (gamepad.getButton(1) == 0) {
     // printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
     //        gamepad.getAxis(2), gamepad.getAxis(3));
-    printf("%d\n", stepper_theta.get_freq());
+    printf("%d\n", stepper_z.get_global_cnt());
     getDegree();
     const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
     int StepVel1 = -(gamepad.getAxis(1)) * 2;
