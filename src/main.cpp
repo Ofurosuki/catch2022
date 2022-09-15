@@ -40,7 +40,6 @@ static bool is_waiting_for_input = true;
 static bool is_Red;
 
 void initialize(Team team) {
-  manager.begin();
   stepper_r.set_theta_config(240.0f, 545.0f / 814.0f);
   stepper_theta.set_theta_config(0, 180.0f / 794.0f);
   const int stepper_vel_for_init = 10;
@@ -97,8 +96,8 @@ void initialize(Team team) {
   if (!sensor.getState(5)) stepper_theta.rotate_vel(stepper_vel_for_init);
   if (!sensor.getState(4)) stepper_z.rotate_vel(stepper_vel_for_init);
   if (!sensor.getState(3)) stepper_r.rotate_vel(stepper_vel_for_init);
-  if (team) {
-    if (!sensor.getState(0)) motor.driveVoltage(-motor_voltage_for_init);
+  if (team == Blue) {
+    if (!sensor.getState(0)) motor.driveVoltage(motor_voltage_for_init);
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootBlue[i];
     }
@@ -126,7 +125,9 @@ void initialize(Team team) {
 }
 
 void ini() {
+  manager.begin();
   while (!sensor.getState(0) && !sensor.getState(1)) {
+    ThisThread::sleep_for(100ms);
   }
   if (sensor.getState(0)) {
     initialize(Blue);
