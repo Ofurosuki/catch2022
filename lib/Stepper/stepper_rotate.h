@@ -13,7 +13,7 @@ class rotate_stepper : public Stepper {
  public:
   void rotate(float theta);
   float progress_cnt();
-  void set_theta_config(float theta_0, float theta_per_stp);
+  void set_theta_config(float theta_0, float stp_per_theta);
   void set_step_mode(int num);
   void rotate_vel(int vel);
   void emergency();

@@ -4,7 +4,7 @@ void Motor::receive(CanManager::Message msg) {
   if (msg.hardId != hardId) return;
   switch (msg.cmdId) {
     case 0x10:
-      currentPosition = *(float*)msg.data;
+      currentPosition = -*(float*)msg.data;
       break;
   }
 }
@@ -33,7 +33,7 @@ void Motor::drivePosition(float position) {
   uint8_t data[8] = {0};
   *(float*)data = position;
   manager.send(CanManager::Message(hardId, 0x03, data));
-  currentCommandPosition = position;
+  currentCommandPosition = -position;
   startPosition = currentPosition;
 }
 
@@ -56,7 +56,7 @@ void Motor::reset() {
 
 void Motor::resetPosition(float defaultPosition) {
   uint8_t data[8] = {0};
-  *(float*)data = defaultPosition;
+  *(float*)data = -defaultPosition;
   manager.send(CanManager::Message(hardId, 0x09, data));
 }
 

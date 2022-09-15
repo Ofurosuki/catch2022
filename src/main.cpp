@@ -40,8 +40,8 @@ static bool is_waiting_for_input = true;
 static bool is_Red;
 
 void initialize(Team team) {
-  stepper_r.set_theta_config(240.0f, 545.0f / 814.0f);
-  stepper_theta.set_theta_config(0, 180.0f / 794.0f);
+  stepper_r.set_theta_config(240.0f, 814.0f / 545.0f);
+  stepper_theta.set_theta_config(0, 794.0f / 180.0f);
 
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;

@@ -20,9 +20,9 @@ float cal_theta(position pos) {
     }
   } else {
     if ((pos.x - pos.x_1) <= 0 && pos.y <= 0) {
-      return atan2(pos.y, (pos.x - pos.x_1)) * M_PI / 180.0f + 360.0f;
+      return atan2(pos.y, (pos.x - pos.x_1)) / M_PI * 180.0f + 360.0f;
     } else {
-      return atan2(pos.y, (pos.x - pos.x_1)) * M_PI / 180.0f;
+      return atan2(pos.y, (pos.x - pos.x_1)) / M_PI * 180.0f;
     }
   }
 }
@@ -31,7 +31,7 @@ void move(position pos, float phi = 45.0f) {
   float modified_theta;
   float r;
   if (cal_theta(pos) <= phi && phi <= cal_theta(pos) + 180.0f) {
-    servo.setPosition(phi - cal_theta(pos));
+    servo.setPosition(180 - (phi - cal_theta(pos)));
     if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
     r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
     if (r >= r_max) r = r_max;
@@ -65,10 +65,13 @@ void move(position pos, float phi = 45.0f) {
       stepper_r.rotate(r);
     } else {
       r = pos.x / sin(modified_theta * M_PI / 180.0f);
+      if (r >= r_max) r = r_max;
       stepper_r.rotate(r);
     }
     stepper_theta.rotate(modified_theta);
-    move_x1(pos.x - r * cos(cal_theta(pos)));
+    move_x1(pos.x - r * cos(modified_theta));
+
+    servo.setPosition(180 - (phi - modified_theta));
   }
   while (stepper_r.progress_cnt() < 1.0f ||
          stepper_theta.progress_cnt() < 1.0f ||
