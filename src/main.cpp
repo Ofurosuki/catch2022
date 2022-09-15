@@ -44,7 +44,7 @@ void initialize(Team team) {
   stepper_theta.set_theta_config(0, 180.0f / 794.0f);
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;
-  const float revolution_num_rightside = 0;
+  const float revolution_num_rightside = 0.0f;
   //右端についたときの回転数
   const int step_num_maxium = 500;
   // r最大値
