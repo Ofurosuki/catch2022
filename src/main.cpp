@@ -42,32 +42,35 @@ static bool is_Red;
 void initialize(Team team) {
   stepper_r.set_theta_config(240.0f, 545.0f / 814.0f);
   stepper_theta.set_theta_config(0, 180.0f / 794.0f);
+
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;
   const float revolution_num_rightside = 0.0f;
   //右端についたときの回転数
-  const int step_num_maxium = 500;
+  const int step_num_maxium = 814;
   // r最大値
 
-  volatile bool theta_initialized = false;
-
   char serialBuf[64] = "";
+  volatile bool is_initialized[6] = {0};
 
   sensor.registerCallback(0, [&](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(0);
+    is_initialized[0] = true;
     sprintf(serialBuf, "x1 :left limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(1, [&](uint8_t, bool) {
     motor.reset();
     motor.resetPosition(revolution_num_rightside);
+    is_initialized[1] = true;
     sprintf(serialBuf, "x1 :right limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(2, [&](uint8_t, bool) {
     stepper_r.rotate_vel(0);
     stepper_r.reset(0);
+    is_initialized[2] = true;
     sprintf(serialBuf, "r :minimum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
@@ -75,21 +78,24 @@ void initialize(Team team) {
   sensor.registerCallback(3, [&](uint8_t, bool) {
     stepper_r.rotate_vel(0);
     stepper_r.reset(step_num_maxium);
+    is_initialized[3] = true;
     sprintf(serialBuf, "r :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(4, [&](uint8_t, bool) {
     stepper_z.rotate_vel(0);
     stepper_z.reset(0);
+    is_initialized[4] = true;
     sprintf(serialBuf, "z :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(5, [&](uint8_t, bool) {
     stepper_theta.rotate_vel(0);
     stepper_theta.reset(0);
-    theta_initialized = true;
+    is_initialized[5] = true;
     sprintf(serialBuf, "theta :zero point adjustment detected\n");
     pc.write(serialBuf, strlen(serialBuf));
+    sensor.registerCallback(5, nullptr);
   });
 
   servo.setPosition(0);  // reset servo
@@ -108,18 +114,39 @@ void initialize(Team team) {
     // theta=0 へ向かったあと、theta=180に向かう
   }
   ThisThread::sleep_for(10ms);
-  if (!sensor.getState(5)) stepper_theta.rotate_vel(-stepper_vel_for_init);
-  if (!sensor.getState(4)) stepper_z.rotate_vel(stepper_vel_for_init);
-  if (!sensor.getState(3)) stepper_r.rotate_vel(stepper_vel_for_init);
+  if (!sensor.getState(5)) {
+    stepper_theta.rotate_vel(-stepper_vel_for_init);
+  } else {
+    is_initialized[5] = true;
+    sensor.registerCallback(5, nullptr);
+  }
+  if (!sensor.getState(4)) {
+    stepper_z.rotate_vel(stepper_vel_for_init * 3);
+  } else {
+    is_initialized[4] = true;
+  }
+  if (!sensor.getState(3)) {
+    stepper_r.rotate_vel(stepper_vel_for_init * 2);
+  } else {
+    is_initialized[3] = true;
+  }
   motor.reset();
   ThisThread::sleep_for(10ms);
 
-  while (!((sensor.getState(0) || sensor.getState(1)) && sensor.getState(3) &&
-           sensor.getState(4) && theta_initialized)) {
+  while (!((is_initialized[0] || is_initialized[1]) && is_initialized[3] &&
+           is_initialized[4] && is_initialized[5])) {
     if (team == Blue) {
-      if (!sensor.getState(1)) motor.driveVoltage(-motor_voltage_for_init);
+      if (!sensor.getState(1)) {
+        motor.driveVoltage(-motor_voltage_for_init);
+      } else {
+        is_initialized[1] = true;
+      }
     } else {
-      if (!sensor.getState(1)) motor.driveVoltage(-motor_voltage_for_init);
+      if (!sensor.getState(1)) {
+        motor.driveVoltage(-motor_voltage_for_init);
+      } else {
+        is_initialized[1] = true;
+      }
     }
     ThisThread::sleep_for(1ms);
   }
@@ -132,10 +159,6 @@ void initialize(Team team) {
 }
 
 void ini() {
-  manager.begin();
-  pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
-  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
-  pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
   while (!sensor.getState(0) && !sensor.getState(1)) {
     ThisThread::sleep_for(100ms);
   }
@@ -157,7 +180,13 @@ int pickedvac1;        // 2nd picked vacuum
 int sharedir;
 
 int main() {
+  manager.begin();
+  pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
+  pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
+  stepper_theta.set_config(5, 100, 10);
   ini();
+  // gamepad_input_to_command();
   while (true) {
     is_waiting_for_input = true;
     printf("waiting for vector input...\n");

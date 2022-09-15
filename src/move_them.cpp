@@ -67,6 +67,7 @@ void move(position pos, float phi = 45.0f) {
       r = pos.x / sin(modified_theta * M_PI / 180.0f);
       stepper_r.rotate(r);
     }
+    stepper_theta.rotate(modified_theta);
     move_x1(pos.x - r * cos(cal_theta(pos)));
   }
   while (stepper_r.progress_cnt() < 1.0f ||
@@ -134,12 +135,13 @@ void getDegree() {
 void gamepad_input_to_command() {
   printf("Please input gamepad\n");
   while (gamepad.getButton(1) == 0) {
-    printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
-           gamepad.getAxis(2), gamepad.getAxis(3));
+    // printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
+    //        gamepad.getAxis(2), gamepad.getAxis(3));
+    printf("%d\n", stepper_theta.get_freq());
     getDegree();
     const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
     int StepVel1 = -(gamepad.getAxis(1)) * 2;
-    int StepVel2 = -(gamepad.getAxis(2)) * 2;
+    int StepVel2 = -(gamepad.getAxis(2)) / 2;
     int StepVel3 = -(gamepad.getAxis(3)) * 2;
 
     // stepXを動かす
