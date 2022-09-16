@@ -14,6 +14,7 @@ class rotate_stepper : public Stepper {
   const float max_vel_diff = 1.0f;
 //
  public:
+ int is_plus=0;
   void rotate(float theta);
   float progress_cnt();
   void set_theta_config(float theta_0, float stp_per_theta);

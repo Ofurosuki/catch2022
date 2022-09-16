@@ -42,7 +42,7 @@ void Stepper::step(int freq_ini, int target_stp) {
     can_velocity_triangle = false;
   }
   stepcycle = 1 / (float)(freq_ini)*10e5;
-  freq = abs(freq_ini);
+  freq = freq_ini;
 }
 
 void Stepper::step_ctl() {  //割り込み関数  //call_interval micro second

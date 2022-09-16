@@ -3,6 +3,7 @@
 #include <mbed.h>
 
 #include "config.h"
+#include "main.h"
 #include "stepper.h"
 rotate_stepper::rotate_stepper(PinName dir, PinName stp) : Stepper(dir, stp) {}
 void rotate_stepper::rotate(float theta) {
@@ -65,32 +66,92 @@ void rotate_stepper::rotate_vel(int velocity) {
     return;
   }
 
-  if (vel >= 0) {
-    if (abs(last_vel - vel) > max_vel_diff) {
-      if (vel - last_vel > 0) {
-        vel = last_vel + max_vel_diff;
-      } else if (vel - last_vel < 0) {
-        vel = last_vel - max_vel_diff;
-      }
+  if (vel - last_vel >= 0) {
+    if (vel - last_vel > max_vel_diff) {
+      vel = last_vel + max_vel_diff;
     }
-    set_config(0, freq_max, vel);
-    is_vel_moving = true;
-    step((int)(vel), INT_MAX);
-  } else if (vel < 0) {
-    if (abs(last_vel - vel) > max_vel_diff) {
-      if (vel - last_vel > 0) {
-        vel = last_vel + max_vel_diff;
-      } else if (vel - last_vel < 0) {
-        vel = last_vel - max_vel_diff;
-      }
+    if (last_vel >= 0) {
+      is_vel_moving = true;
+      step(vel, INT_MAX);
+      is_plus = 1;
+    } else if (vel <= 0) {
+      is_vel_moving = true;
+      step(-vel, -INT_MAX);
+      is_plus = 0;
+    } else {
+      is_vel_moving = true;
+      step(vel, INT_MAX);
+      is_plus = 1;
     }
-    set_config(0, freq_max, vel);
-    is_vel_moving = true;
-    step(-(int)(vel), -INT_MAX);
-  }
+  } else if (vel - last_vel < 0) {
+    if ( last_vel-vel > max_vel_diff) {
+      vel = last_vel - max_vel_diff;
+    }
+    if(vel>=0){
+      is_vel_moving = true;
+      step(vel, INT_MAX);
+      is_plus = 1;
+    }else if(vel<0){
+      is_vel_moving = true;
+      step(-vel, -INT_MAX);
+      is_plus = 0;
+    }
+  } 
   last_vel = vel;
-}
 
+  /*
+    if (vel > 0) {
+      if (abs(last_vel - vel) > max_vel_diff) {
+        if (vel - last_vel > 0) {
+          vel = last_vel + max_vel_diff;
+        } else if (vel - last_vel < 0) {
+          vel = last_vel - max_vel_diff;
+        }
+      }
+      set_config(0, freq_max, vel);
+      is_vel_moving = true;
+      step((int)(vel), INT_MAX);
+      is_plus = 1;
+    } else if (vel < 0) {
+      if (abs(last_vel - vel) > max_vel_diff) {
+        if (vel - last_vel > 0) {
+          vel = last_vel + max_vel_diff;
+        } else if (vel - last_vel < 0) {
+          vel = last_vel - max_vel_diff;
+        }
+      }
+      set_config(0, freq_max, vel);
+      is_vel_moving = true;
+      step(-(int)(vel), -INT_MAX);
+      is_plus = 0;
+    } else if (vel == 0) {
+      if(last_vel>=0){
+         if (abs(last_vel - vel) > max_vel_diff) {
+        if (vel - last_vel > 0) {
+          vel = last_vel + max_vel_diff;
+        } else if (vel - last_vel < 0) {
+          vel = last_vel - max_vel_diff;
+        }
+      }
+      set_config(0, freq_max, vel);
+      is_vel_moving = true;
+      step((int)(vel), INT_MAX);
+      is_plus=1;
+      }else{
+         if (abs(last_vel - vel) > max_vel_diff) {
+        if (vel - last_vel > 0) {
+          vel = last_vel + max_vel_diff;
+        } else if (vel - last_vel < 0) {
+          vel = last_vel - max_vel_diff;
+        }
+      }
+      set_config(0, freq_max, vel);
+      is_vel_moving = true;
+      step(-(int)(vel), -INT_MAX);
+      is_plus=0;
+      }
+    }*/
+}
 void rotate_stepper::emergency() {
   stepcycle = 0;  // called when limit switch is on
 }
