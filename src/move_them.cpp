@@ -28,7 +28,6 @@ float cal_theta(position pos) {
 }
 
 void move(position pos, float phi = 45.0f) {
-  float modified_theta;
   float r;
   if (cal_theta(pos) <= phi && phi <= cal_theta(pos) + 180.0f) {
     servo.setPosition(180 - (phi - cal_theta(pos)));
@@ -86,7 +85,7 @@ void take_down(float z) {
   }
 }
 void take_up() {
-  stepper_z.rotate(z_height.z_up);
+  stepper_z.rotate_vel(15);
   while (stepper_z.progress_cnt() < 1.0f) {
   }
 }

@@ -48,6 +48,43 @@ void rotate_stepper::rotate_vel(int vel) {
   }
 }
 
+void rotate_stepper::rotate_acc(int vel) {
+  const unsigned int max_vel_diff = 20;
+  if (!is_vel_moving) {
+    freq_ini_tmp = freq_ini;
+    freq_diff_tmp = freq_diff;
+  }
+  if (vel == 0) {
+    is_vel_moving = false;
+    stepcycle = 0;
+    set_config(freq_diff_tmp, freq_max, freq_ini_tmp);
+    last_vel = 0;
+    return;
+  }
+  set_config(0, freq_max, vel);
+  if (vel > 0) {
+    if (abs(last_vel - vel) > max_vel_diff) {
+      if (vel - last_vel > 0) {
+        vel = last_vel + max_vel_diff;
+      } else {
+        vel = last_vel - max_vel_diff;
+      }
+    }
+    is_vel_moving = true;
+    step(vel, INT_MAX);
+  } else if (vel < 0) {
+    if (abs(last_vel - vel) > max_vel_diff) {
+      if (vel - last_vel > 0) {
+        vel = last_vel + max_vel_diff;
+      } else {
+        vel = last_vel - max_vel_diff;
+      }
+    }
+    is_vel_moving = true;
+    step(-vel, -INT_MAX);
+  }
+}
+
 void rotate_stepper::emergency() {
   stepcycle = 0;  // called when limit switch is on
 }
