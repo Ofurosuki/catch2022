@@ -113,6 +113,8 @@ void gamepad_input_to_command() {
     // printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
     //        gamepad.getAxis(2), gamepad.getAxis(3));
     printf("%d\n", stepper_z.get_global_cnt());
+    // ここにsleepを置かないとサーボが死ぬ
+    ThisThread::sleep_for(50ms);
     getDegree();
     const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
     int StepVel1 = -(gamepad.getAxis(1)) * 2;
