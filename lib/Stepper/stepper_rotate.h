@@ -10,12 +10,15 @@ class rotate_stepper : public Stepper {
   int freq_diff_tmp = 0;
   float freq_ini_tmp = 0;
 
+  int last_vel = 0;
+
  public:
   void rotate(float theta);
   float progress_cnt();
   void set_theta_config(float theta_0, float stp_per_theta);
   void set_step_mode(int num);
   void rotate_vel(int vel);
+  void rotate_acc(int vel);
   void emergency();
   void reset(int global_step);
   rotate_stepper(PinName dir, PinName stp);
