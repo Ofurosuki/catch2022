@@ -24,7 +24,7 @@ typedef struct {
 } Z_height;
 extern position here;
 extern const float jaga_3_degree;
-extern const float x1_max;
+extern const float x1_min;
 extern const float r_max;
 extern Z_height z_height;
 extern position jaga[16];

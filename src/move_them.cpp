@@ -35,12 +35,13 @@ void move(position pos, float phi = 45.0f) {
     printf("servo modified\n");
     servo.setPosition(cal_theta(pos) - phi + 170);
   }
-  if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
+  if (pos.x_1 <= x1_min) pos.x_1 = x1_min;
   r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
   if (r >= r_max) r = r_max;
   stepper_theta.rotate(cal_theta(pos));
   stepper_r.rotate(r);
   move_x1(pos.x_1);
+  ThisThread::sleep_for(1s);
   while (stepper_r.progress_cnt() < 1.0f ||
          stepper_theta.progress_cnt() < 1.0f ||
          motor.getPositionProgress() < 0.99f) {

@@ -41,7 +41,9 @@ static bool is_Red;
 
 void initialize(Team team) {
   stepper_r.set_theta_config(240.0f, 814.0f / 545.0f);
+  stepper_r.set_config(5, 200, 5);
   stepper_theta.set_theta_config(0, 794.0f / 180.0f);
+  stepper_theta.set_config(5, 100, 5);
 
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;
@@ -121,7 +123,7 @@ void initialize(Team team) {
     sensor.registerCallback(5, nullptr);
   }
   if (!sensor.getState(4)) {
-    stepper_z.rotate_vel(stepper_vel_for_init * 3);
+    stepper_z.rotate_vel(stepper_vel_for_init * 4);
   } else {
     is_initialized[4] = true;
   }
@@ -129,6 +131,7 @@ void initialize(Team team) {
     stepper_r.rotate_vel(stepper_vel_for_init * 2);
   } else {
     is_initialized[3] = true;
+    stepper_r.reset(step_num_maxium);
   }
   motor.reset();
   ThisThread::sleep_for(10ms);
@@ -184,7 +187,7 @@ int main() {
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
   pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
   pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
-  stepper_theta.set_config(5, 100, 10);
+
   ini();
   // gamepad_input_to_command();
   while (true) {
