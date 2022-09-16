@@ -3,7 +3,6 @@
 #include <mbed.h>
 
 #include "config.h"
-#include "main.h"
 #include "stepper.h"
 rotate_stepper::rotate_stepper(PinName dir, PinName stp) : Stepper(dir, stp) {}
 void rotate_stepper::rotate(float theta) {
@@ -84,19 +83,19 @@ void rotate_stepper::rotate_vel(int velocity) {
       is_plus = 1;
     }
   } else if (vel - last_vel < 0) {
-    if ( last_vel-vel > max_vel_diff) {
+    if (last_vel - vel > max_vel_diff) {
       vel = last_vel - max_vel_diff;
     }
-    if(vel>=0){
+    if (vel >= 0) {
       is_vel_moving = true;
       step(vel, INT_MAX);
       is_plus = 1;
-    }else if(vel<0){
+    } else if (vel < 0) {
       is_vel_moving = true;
       step(-vel, -INT_MAX);
       is_plus = 0;
     }
-  } 
+  }
   last_vel = vel;
 
   /*

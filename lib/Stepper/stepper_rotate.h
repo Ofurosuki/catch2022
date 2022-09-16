@@ -9,18 +9,19 @@ class rotate_stepper : public Stepper {
   bool is_vel_moving = false;
   int freq_diff_tmp = 0;
   float freq_ini_tmp = 0;
-//for rotate_vel
+  // for rotate_vel
   float last_vel = 0.0f;
-  const float max_vel_diff = 1.0f;
-//
+  float max_vel_diff = 1.0f;
+  //
  public:
- int is_plus=0;
+  int is_plus = 0;
   void rotate(float theta);
   float progress_cnt();
   void set_theta_config(float theta_0, float stp_per_theta);
   void set_step_mode(int num);
+  void set_max_vel_diff(float _max_vel_diff) { max_vel_diff = _max_vel_diff; }
   void rotate_vel(int velocity);
-  //void rotate_acc(int vel);
+  // void rotate_acc(int vel);
   void emergency();
   void reset(int global_step);
   rotate_stepper(PinName dir, PinName stp);

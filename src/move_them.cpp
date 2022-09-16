@@ -109,7 +109,8 @@ void gamepad_input_to_command() {
   while (gamepad.getButton(1) == 0) {
     // printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
     //        gamepad.getAxis(2), gamepad.getAxis(3));
-    printf("%d\n", stepper_theta.get_freq());
+    printf("theta: %d, r: %d, z: %d\n", stepper_theta.get_freq(),
+           stepper_r.get_freq(), stepper_z.get_freq());
     getDegree();
     const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
     int StepVel1 = -(gamepad.getAxis(1)) * 2;
