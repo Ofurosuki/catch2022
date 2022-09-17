@@ -46,6 +46,7 @@ void initialize(Team team) {
   stepper_theta.set_config(5, 100, 5);
   stepper_theta.set_max_vel_diff(0.2);
   stepper_z.set_theta_config(0, 481.0f / 154.0f);
+  stepper_z.set_config(10, 100, 5);
 
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;

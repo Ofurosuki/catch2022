@@ -84,15 +84,18 @@ void release_jaga() {
 
 void take_down(float z) {
   stepper_z.rotate(z);
+  ThisThread::sleep_for(500ms);
   while (stepper_z.progress_cnt() < 1.0f) {
     ThisThread::sleep_for(100ms);
   }
 }
 void take_up() {
-  stepper_z.rotate_vel(15);
+  stepper_z.set_max_vel_diff(50);
+  stepper_z.rotate_vel(50);
   while (!sensor.getState(4)) {
     ThisThread::sleep_for(100ms);
   }
+  stepper_z.set_max_vel_diff(1);
 }
 
 float joyDeg0;
@@ -171,4 +174,7 @@ void gamepad_input_to_command() {
       servo.setVelocity(0);
     }
   }
+  stepper_r.emergency();
+  stepper_theta.emergency();
+  stepper_z.emergency();
 }
