@@ -48,6 +48,10 @@ void getDegree() {
   joyDeg1 = atan2(yAxis1, xAxis1);
 }
 
+bool solenoid_state_0 = 0;
+bool solenoid_state_1 = 0;
+bool solenoid_state_2 = 0;
+
 int main() {
   manager.begin();
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
@@ -67,8 +71,8 @@ int main() {
     stepper_r.reset(820);
   });
   sensor.registerCallback(0x04, [&](uint8_t, bool) { stepper_z.reset(0); });
-  bool solenoid_state[3];
   /*
+  bool solenoid_state[3];
   solenoid_state[0]=true; //1,　吸わない
   solenoid_state[1]=true;
   solenoid_state[2]=true;
@@ -98,10 +102,10 @@ int main() {
 
   bool prevRight = false, prevLeft = false;
 
-  //吸盤が吸っている設定
-  solenoid.driveSingle(0, 0);
-  solenoid.driveSingle(1, 0);
-  solenoid.driveSingle(2, 0);
+  //吸盤が吸っていない設定
+  solenoid.driveSingle(0, 1);
+  solenoid.driveSingle(1, 1);
+  solenoid.driveSingle(2, 1);
 
   while (true) {
     // printf("progresscnt:%f\n", stepper_theta.progress_cnt());
@@ -147,9 +151,9 @@ int main() {
       stopStepper0 = false;
     }
     getDegree();
-    solenoid.driveSingle(0, gamepad.getButton(0));
-    solenoid.driveSingle(1, gamepad.getButton(1));
-    solenoid.driveSingle(2, gamepad.getButton(2));
+    // solenoid.driveSingle(0, gamepad.getButton(0));
+    // solenoid.driveSingle(1, gamepad.getButton(1));
+    // solenoid.driveSingle(2, gamepad.getButton(2));
     //以下でステッパーを動かすためのswitch文の条件を決める
     const float DCVelocity = (float)gamepad.getAxis(0) / 200;
     int StepVel1 = (gamepad.getAxis(1)) * 2;
@@ -279,6 +283,20 @@ int main() {
       servo.setVelocity(SlowServoVelocity);
     } else {
       servo.setVelocity(0);
+    }
+
+    if (gamepad.getHat(0) == -1) {
+      solenoid.driveSingle(0, 0);
+    } else if (gamepad.getHat(0) == 1) {
+      solenoid.driveSingle(1, 0);
+    } else if (gamepad.getHat(1) == -1) {
+      solenoid.driveSingle(2, 0);
+    } else if (gamepad.getHat(1) == 1) {
+      solenoid.driveSingle(0, 0);
+      solenoid.driveSingle(1, 0);
+      solenoid.driveSingle(2, 0);
+    } else {
+      continue;
     }
   }
 }
