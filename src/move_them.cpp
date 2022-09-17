@@ -28,16 +28,15 @@ float cal_theta(position pos) {
 }
 
 void move(position pos, float phi = 45.0f) {
-  float modified_theta;
   float r;
   float x1;
-  if (cal_theta(pos) <= phi && phi <= cal_theta(pos) + 180.0f) {
-    servo.setPosition(cal_theta(pos) - phi);
+  if (10 <= cal_theta(pos) - phi && cal_theta(pos) - phi <= 190) {
+    servo.setPosition(cal_theta(pos) - phi - 10);
   } else {
     printf("servo modified\n");
-    servo.setPosition(cal_theta(pos) - phi + 180.0f);
+    servo.setPosition(cal_theta(pos) - phi + 170);
   }
-  if (pos.x_1 >= x1_max) pos.x_1 = x1_max;
+  if (pos.x_1 <= x1_min) pos.x_1 = x1_min;
   r = sqrt((pos.x - pos.x_1) * (pos.x - pos.x_1) + pos.y * pos.y);
   if (r >= r_max) r = r_max;
   stepper_theta.rotate(cal_theta(pos));
@@ -86,11 +85,13 @@ void release_jaga() {
 void take_down(float z) {
   stepper_z.rotate(z);
   while (stepper_z.progress_cnt() < 1.0f) {
+    ThisThread::sleep_for(100ms);
   }
 }
 void take_up() {
-  stepper_z.rotate(z_height.z_up);
-  while (stepper_z.progress_cnt() < 1.0f) {
+  stepper_z.rotate_vel(15);
+  while (!sensor.getState(4)) {
+    ThisThread::sleep_for(100ms);
   }
 }
 
@@ -112,9 +113,8 @@ void gamepad_input_to_command() {
   while (gamepad.getButton(1) == 0) {
     // printf("%d,%d,%d,%d\n", gamepad.getAxis(0), gamepad.getAxis(1),
     //        gamepad.getAxis(2), gamepad.getAxis(3));
-    printf("%d\n", stepper_z.get_global_cnt());
-    // ここにsleepを置かないとサーボが死ぬ
-    ThisThread::sleep_for(50ms);
+    printf("theta: %d, r: %d, z: %d\n", stepper_theta.get_freq(),
+           stepper_r.get_freq(), stepper_z.get_freq());
     getDegree();
     const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
     int StepVel1 = -(gamepad.getAxis(1)) * 2;

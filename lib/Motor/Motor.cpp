@@ -31,7 +31,7 @@ void Motor::setMode(Mode mode) {
 
 void Motor::drivePosition(float position) {
   uint8_t data[8] = {0};
-  *(float*)data = position;
+  *(float*)data = -position;
   manager.send(CanManager::Message(hardId, 0x03, data));
   currentCommandPosition = -position;
   startPosition = currentPosition;
