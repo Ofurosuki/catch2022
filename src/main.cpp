@@ -15,9 +15,10 @@ int main() {
   stepper.set_config(2, 10, 2);
   printf("ini\n");
   // stepper.step(10, 50);
+  //stepper.rotate_vel(100);
   while (1) {
     float vol = x.read();
-    stepper.rotate_vel((int)(vol * 100) - 50);
+  stepper.rotate_vel_loop((int)(vol * 100) - 50);
     
     ThisThread::sleep_for(50ms);
     printf("input:%d,", (int)(vol * 100) - 50);

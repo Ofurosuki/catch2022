@@ -27,7 +27,7 @@ void rotate_stepper::set_theta_config(float theta_0, float stp_per_theta) {
   theta_zero = theta_0;
 }
 void rotate_stepper::set_step_mode(int num) { step_mode = num; }
-/*
+
 void rotate_stepper::rotate_vel(int vel) {
   if (!is_vel_moving) {
     freq_ini_tmp = freq_ini;
@@ -47,9 +47,9 @@ void rotate_stepper::rotate_vel(int vel) {
     is_vel_moving = true;
     step(-vel, -INT_MAX);
   }
-}*/
+}
 
-void rotate_stepper::rotate_vel(int velocity) {
+void rotate_stepper::rotate_vel_loop(int velocity) {
   float vel = (float)(velocity);
   const float vel_coefficient = 1.0f;
   //インプットの何倍の周波数を取るか(freq=velocity_coefficient*velocity)
@@ -65,8 +65,8 @@ void rotate_stepper::rotate_vel(int velocity) {
     last_vel = 0;
     return;
   }
-
-  if (vel - last_vel >= 0) {
+  set_config(0, freq_max, vel);
+  if (vel - last_vel > 0) {
     if (vel - last_vel > max_vel_diff) {
       vel = last_vel + max_vel_diff;
     }
@@ -84,19 +84,19 @@ void rotate_stepper::rotate_vel(int velocity) {
       is_plus = 1;
     }
   } else if (vel - last_vel < 0) {
-    if ( last_vel-vel > max_vel_diff) {
+    if (last_vel - vel > max_vel_diff) {
       vel = last_vel - max_vel_diff;
     }
-    if(vel>=0){
+    if (vel >= 0) {
       is_vel_moving = true;
       step(vel, INT_MAX);
       is_plus = 1;
-    }else if(vel<0){
+    } else if (vel < 0) {
       is_vel_moving = true;
       step(-vel, -INT_MAX);
       is_plus = 0;
     }
-  } 
+  }
   last_vel = vel;
 
   /*
