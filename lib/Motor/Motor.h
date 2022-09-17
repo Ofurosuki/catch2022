@@ -30,7 +30,7 @@ class Motor {
   // 位置指定で動作中に、スタートからゴールまで何%動いたかを返す
   float getPositionProgress();
   // 現在位置を返す
-  float getCurrentPosition() { return currentPosition; }
+  float getCurrentPosition() { return -currentPosition; }
 
   // CanManagerから呼び出されるメソッド。呼び出さないこと
   void receive(CanManager::Message msg);
