@@ -15,3 +15,5 @@ extern Solenoid solenoid;
 extern Gamepad gamepad;
 extern Gui gui;
 extern Sensor sensor;
+
+extern UnbufferedSerial pc;

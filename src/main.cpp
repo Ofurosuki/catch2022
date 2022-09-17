@@ -41,12 +41,12 @@ static bool is_Red;
 
 void initialize(Team team) {
   stepper_r.set_theta_config(240.0f, 820.0f / 480.0f);
-  stepper_r.set_config(5, 200, 5);
-  stepper_theta.set_theta_config(0, 794.0f / 180.0f);
-  stepper_theta.set_config(5, 100, 5);
+  stepper_r.set_config(15, 200, 5);
+  stepper_theta.set_theta_config(0, 797.0f / 180.0f);
+  stepper_theta.set_config(7, 100, 5);
   stepper_theta.set_max_vel_diff(0.2);
   stepper_z.set_theta_config(0, 481.0f / 154.0f);
-  stepper_z.set_config(10, 100, 5);
+  stepper_z.set_config(40, 150, 10);
 
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;
@@ -98,6 +98,7 @@ void initialize(Team team) {
   sensor.registerCallback(5, [&](uint8_t, bool) {
     stepper_theta.rotate_vel(0);
     stepper_theta.reset(0);
+    stepper_theta.set_max_vel_diff(0.2);
     is_initialized[5] = true;
     sprintf(serialBuf, "theta :zero point adjustment detected\n");
     pc.write(serialBuf, strlen(serialBuf));
@@ -127,14 +128,15 @@ void initialize(Team team) {
   }
   ThisThread::sleep_for(10ms);
   if (!sensor.getState(5)) {
-    stepper_theta.rotate_vel(stepper_vel_for_init);
+    stepper_theta.set_max_vel_diff(8);
+    stepper_theta.rotate_vel(8);
   } else {
     is_initialized[5] = true;
     sensor.registerCallback(5, nullptr);
   }
   if (!sensor.getState(4)) {
-    stepper_z.set_max_vel_diff(stepper_vel_for_init * 4);
-    stepper_z.rotate_vel(stepper_vel_for_init * 4);
+    stepper_z.set_max_vel_diff(stepper_vel_for_init * 3);
+    stepper_z.rotate_vel(stepper_vel_for_init * 3);
   } else {
     is_initialized[4] = true;
   }
@@ -170,11 +172,12 @@ void initialize(Team team) {
     while (stepper_theta.progress_cnt() < 0.99) {
       ThisThread::sleep_for(100ms);
     }
-    stepper_theta.reset(794.0f / 180.0f * 180);
+    stepper_theta.reset(797.0f / 180.0f * 180);
   }
 }
 
 void ini() {
+  printf("Select initialize mode\n");
   while (!sensor.getState(0) && !sensor.getState(1)) {
     ThisThread::sleep_for(100ms);
   }
@@ -230,13 +233,15 @@ int main() {
           } else {
             move(jaga[pickedvac1], 45.0f);
           }
-        } else {  // destination 0<1
+        } else if (pickedvac0 < pickedvac1) {  // destination 0<1
           if (((pickedvac0) % 2 == 0 && (pickedvac1) % 2 == 0) ||
               ((pickedvac0) % 2 != 0 && (pickedvac1) % 2 != 0)) {
             move(jaga[pickedvac1], 135.0f);
           } else {
             move(jaga[pickedvac1], -135.0f);
           }
+        } else {
+          continue;
         }
         //場所方向指定ここまで
         // move(sharejaga[gui.getCommand().destination1]);
@@ -260,7 +265,7 @@ int main() {
         if (is_Red == false) {
           if (sharedir == 9) {
             move(sharejagaB[pickedvac0], 90.0f);
-          } else if (pickedvac1 == 10) {
+          } else if (sharedir == 10) {
             move(sharejagaB[pickedvac0], -90.0f);
           } else {
             move(sharejagaB[pickedvac0], 90.0f);
@@ -274,7 +279,7 @@ int main() {
             move(sharejagaR[pickedvac0], 90.0f);
           }
         }
-        //目的地到着後（シュート）
+        //目的地到着後
         is_waiting_for_input = true;
         gamepad_input_to_command();  //上で微調整
         is_waiting_for_input = false;
@@ -282,9 +287,8 @@ int main() {
         is_waiting_for_input = true;
         gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
         is_waiting_for_input = false;
-        take_down(z_height.z_down_common_take);  //吸う
         catch_jaga();
-        ThisThread::sleep_for(2000ms);
+        take_down(z_height.z_down_common_take);  //吸う
         take_up();
         break;
 
@@ -413,7 +417,6 @@ int main() {
         gamepad_input_to_command();  //下した後の微調節、いるか要検討(落とすときはいるのかな)
         is_waiting_for_input = false;
         release_jaga();
-        ThisThread::sleep_for(2000ms);
         // if(finished)
         take_up();
         break;

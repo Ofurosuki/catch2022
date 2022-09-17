@@ -9,7 +9,7 @@
 float move_x1(float x1) {
   const float revolution_per_x1 =
       (5.5495f / 312.0f + 6.403f / 362.0f + 6.2075f / 350.0f) / 3.0f;
-  return (x1 * revolution_per_x1);
+  return ((x1 - 20) * revolution_per_x1);
 }
 float cal_theta(position pos) {
   if (pos.x - pos.x_1 == 0) {
@@ -28,6 +28,7 @@ float cal_theta(position pos) {
 }
 
 void move(position pos, float phi = 45.0f) {
+  pos.x = pos.x - 20;
   float r;
   float x1;
   if (10 <= cal_theta(pos) - phi && cal_theta(pos) - phi <= 190) {
@@ -49,15 +50,20 @@ void move(position pos, float phi = 45.0f) {
     printf("progress:(r,theta,x1)=(%f,%f,%f)\n", stepper_r.progress_cnt() * 100,
            stepper_theta.progress_cnt() * 100, motor.getPositionProgress());
     motor.drivePosition(x1);
+    if (gamepad.getButton(8) && gamepad.getButton(9)) {
+      break;
+    }
     ThisThread::sleep_for(100ms);
   }
   printf("move to (%f,%f,) completed.\n", pos.x, pos.y);
 }
 // const int delta_time_to_resuck = 1000;
 void catch_jaga() {
-  if (!gui.checkNewSucker()) printf("waiting sucker input...\n");
-  while (!gui.checkNewSucker()) {
-    ThisThread::sleep_for(100ms);
+  if (!gui.checkNewSucker()) {
+    printf("waiting sucker input...\n");
+    while (!gui.checkNewSucker()) {
+      ThisThread::sleep_for(100ms);
+    }
   }
   if (!gui.getCommand().enableSuckers[0]) {
     solenoid.driveSingle(0, 1, 0);
@@ -77,12 +83,19 @@ void catch_jaga() {
 }
 
 void release_jaga() {
+  if (!gui.checkNewSucker()) {
+    printf("waiting sucker input...\n");
+    while (!gui.checkNewSucker()) {
+      ThisThread::sleep_for(100ms);
+    }
+  }
   if (!gui.getCommand().enableSuckers[0]) solenoid.driveSingle(0, 1, 0);
   if (!gui.getCommand().enableSuckers[1]) solenoid.driveSingle(1, 1, 0);
   if (!gui.getCommand().enableSuckers[2]) solenoid.driveSingle(2, 1, 0);
 }  // 1は吸引解除
 
 void take_down(float z) {
+  printf("take down to %f\n", z);
   stepper_z.rotate(z);
   ThisThread::sleep_for(500ms);
   while (stepper_z.progress_cnt() < 1.0f) {
@@ -90,12 +103,31 @@ void take_down(float z) {
   }
 }
 void take_up() {
+  printf("take up\n");
   stepper_z.set_max_vel_diff(50);
   stepper_z.rotate_vel(50);
-  while (!sensor.getState(4)) {
+  volatile bool touched = false;
+  char serialBuf[32];
+  sensor.registerCallback(0x04, [&](uint8_t, size_t) {
+    char serialBuf[32];
+    touched = true;
+    stepper_z.rotate_vel(0);
+    stepper_z.reset(0);
+    stepper_z.set_max_vel_diff(1);
+    sprintf(serialBuf, "z :maximum limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
+  });
+  while (!touched) {
     ThisThread::sleep_for(100ms);
   }
-  stepper_z.set_max_vel_diff(1);
+  sensor.registerCallback(4, [&](uint8_t, bool) {
+    char serialBuf[32];
+    stepper_z.rotate_vel(0);
+    stepper_z.reset(0);
+    stepper_z.set_max_vel_diff(1);
+    sprintf(serialBuf, "z :maximum limit detected\n");
+    pc.write(serialBuf, strlen(serialBuf));
+  });
 }
 
 float joyDeg0;
@@ -120,8 +152,8 @@ void gamepad_input_to_command() {
            stepper_r.get_freq(), stepper_z.get_freq());
     getDegree();
     const float DCVelocity = -(float)gamepad.getAxis(0) / 200;
-    int StepVel1 = -(gamepad.getAxis(1)) * 2;
-    int StepVel2 = -(gamepad.getAxis(2)) / 2;
+    int StepVel1 = -(gamepad.getAxis(1));
+    int StepVel2 = -(gamepad.getAxis(2)) / 4;
     int StepVel3 = -(gamepad.getAxis(3)) * 2;
 
     // stepXを動かす

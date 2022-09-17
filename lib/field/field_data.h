@@ -18,8 +18,8 @@ typedef struct {
   float z_down = -144.5f;
   float z_down_common = -108.7f;
   float z_down_common_take = -179.0f;
-  float z_down_release = 15.0f;
-  float z_down_2nd_release = 115.0f;
+  float z_down_release = -114.5f;
+  float z_down_2nd_release = 0;
 
 } Z_height;
 extern position here;
