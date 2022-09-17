@@ -345,6 +345,7 @@ int main() {
             }
           } else {
             //何も動かさない、最初から選択
+            continue;
           }
         }
 
@@ -390,17 +391,18 @@ int main() {
                 break;
               //ここから例外、手動操作必要
               case 1:
-                move(shootRwall[pickedvac1], 135.0f);
+                move(shoot[5], 135.0f);
                 break;
               case 12:
               case 15:
-                move(shootRwall[pickedvac1], -135.0f);
+                move(shootRwall[pickedvac1], 135.0f);
                 break;
               default:
                 break;
             }
           } else {
             //何も動かさない、最初から選択
+            continue;
           }
         }
 
