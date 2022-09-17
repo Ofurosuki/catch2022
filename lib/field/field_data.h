@@ -14,10 +14,10 @@ struct position {
 
 typedef struct {
   float z_up = 150.0;
-  float z_down_take = 30.0f;
-  float z_down = 2.0f;
-  float z_down_common = 40.0f;
-  float z_down_common_take = 230.0f;
+  float z_down_take = -214.5f;
+  float z_down = -144.5f;
+  float z_down_common = -108.7f;
+  float z_down_common_take = -179.0f;
   float z_down_release = 15.0f;
   float z_down_2nd_release = 115.0f;
 
@@ -27,6 +27,7 @@ extern const float jaga_3_degree;
 extern const float x1_min;
 extern const float r_max;
 extern Z_height z_height;
+extern position jaga[16];
 extern position jagaB[16];
 extern position jagaR[16];
 extern position sharejagaR[11];

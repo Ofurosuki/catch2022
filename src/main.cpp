@@ -40,17 +40,17 @@ static bool is_waiting_for_input = true;
 static bool is_Red;
 
 void initialize(Team team) {
-  stepper_r.set_theta_config(240.0f, 814.0f / 545.0f);
+  stepper_r.set_theta_config(240.0f, 820.0f / 480.0f);
   stepper_r.set_config(5, 200, 5);
   stepper_theta.set_theta_config(0, 794.0f / 180.0f);
   stepper_theta.set_config(5, 100, 5);
   stepper_theta.set_max_vel_diff(0.2);
+  stepper_z.set_theta_config(0, 481.0f / 154.0f);
 
   const int stepper_vel_for_init = 10;
   const float motor_voltage_for_init = 0.15;
-  const float revolution_num_rightside = 0.0f;
+  const float revolution_num_rightside = -9.2445f;
   //右端についたときの回転数
-  const int step_num_maxium = 814;
   // r最大値
 
   char serialBuf[64] = "";
@@ -58,14 +58,15 @@ void initialize(Team team) {
 
   sensor.registerCallback(0, [&](uint8_t, bool) {
     motor.reset();
-    motor.resetPosition(0);
+    wait_us(50000);
+    motor.resetPosition(revolution_num_rightside);
     is_initialized[0] = true;
     sprintf(serialBuf, "x1 :left limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
   });
   sensor.registerCallback(1, [&](uint8_t, bool) {
     motor.reset();
-    motor.resetPosition(revolution_num_rightside);
+    motor.resetPosition(0);
     is_initialized[1] = true;
     sprintf(serialBuf, "x1 :right limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
@@ -80,7 +81,7 @@ void initialize(Team team) {
 
   sensor.registerCallback(3, [&](uint8_t, bool) {
     stepper_r.rotate_vel(0);
-    stepper_r.reset(step_num_maxium);
+    stepper_r.reset(r_max);
     is_initialized[3] = true;
     sprintf(serialBuf, "r :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
@@ -88,6 +89,7 @@ void initialize(Team team) {
   sensor.registerCallback(4, [&](uint8_t, bool) {
     stepper_z.rotate_vel(0);
     stepper_z.reset(0);
+    stepper_z.set_max_vel_diff(1);
     is_initialized[4] = true;
     sprintf(serialBuf, "z :maximum limit detected\n");
     pc.write(serialBuf, strlen(serialBuf));
@@ -106,6 +108,9 @@ void initialize(Team team) {
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootBlue[i];
     }
+    for (int i = 0; i < 16; i++) {
+      jaga[i] = jagaB[i];
+    }
     // sw0 に向かって押す　(blue)
 
     // theta=0が基準点
@@ -113,17 +118,21 @@ void initialize(Team team) {
     for (int i = 0; i < 18; i++) {
       shoot[i] = shootRed[i];
     }
+    for (int i = 0; i < 16; i++) {
+      jaga[i] = jagaR[i];
+    }
     // sw1　にむかって押す(red)
     // theta=0 へ向かったあと、theta=180に向かう
   }
   ThisThread::sleep_for(10ms);
   if (!sensor.getState(5)) {
-    stepper_theta.rotate_vel(-stepper_vel_for_init);
+    stepper_theta.rotate_vel(stepper_vel_for_init);
   } else {
     is_initialized[5] = true;
     sensor.registerCallback(5, nullptr);
   }
   if (!sensor.getState(4)) {
+    stepper_z.set_max_vel_diff(stepper_vel_for_init * 4);
     stepper_z.rotate_vel(stepper_vel_for_init * 4);
   } else {
     is_initialized[4] = true;
@@ -132,7 +141,7 @@ void initialize(Team team) {
     stepper_r.rotate_vel(stepper_vel_for_init * 2);
   } else {
     is_initialized[3] = true;
-    stepper_r.reset(step_num_maxium);
+    stepper_r.reset(r_max);
   }
   motor.reset();
   ThisThread::sleep_for(10ms);
@@ -140,8 +149,8 @@ void initialize(Team team) {
   while (!((is_initialized[0] || is_initialized[1]) && is_initialized[3] &&
            is_initialized[4] && is_initialized[5])) {
     if (team == Blue) {
-      if (!sensor.getState(1)) {
-        motor.driveVoltage(-motor_voltage_for_init);
+      if (!sensor.getState(0)) {
+        motor.driveVoltage(motor_voltage_for_init);
       } else {
         is_initialized[1] = true;
       }
@@ -188,7 +197,12 @@ int main() {
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
   pcConnector.registerCallback(0x02, callback(&gui, &Gui::pcVectorCallback));
   pcConnector.registerCallback(0x03, callback(&gui, &Gui::pcSuckerCallback));
-
+  // stepper_r.set_theta_config(240.0f, 820.0f / 480.0f);
+  // stepper_r.set_config(5, 200, 5);
+  // stepper_theta.set_theta_config(0, 794.0f / 180.0f);
+  // stepper_theta.set_config(5, 100, 5);
+  // stepper_theta.set_max_vel_diff(0.2);
+  // stepper_z.set_theta_config(0, 481.0f / 154.0f);
   ini();
   // gamepad_input_to_command();
   while (true) {
@@ -231,8 +245,9 @@ int main() {
         is_waiting_for_input = true;
         gamepad_input_to_command();  //下した後の微調節、いるか要検討(取るときはいるのか)
         is_waiting_for_input = false;
-        take_down(z_height.z_down_take);
         catch_jaga();
+        take_down(z_height.z_down_take);
+
         ThisThread::sleep_for(2000ms);
         take_up();
 

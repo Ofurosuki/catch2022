@@ -1,6 +1,7 @@
 #pragma once
 #include "Gamepad.h"
 #include "Motor.h"
+#include "Sensor.h"
 #include "Servo.h"
 #include "Solenoid.h"
 #include "stepper_rotate.h"
@@ -13,3 +14,4 @@ extern Servo servo;
 extern Solenoid solenoid;
 extern Gamepad gamepad;
 extern Gui gui;
+extern Sensor sensor;
