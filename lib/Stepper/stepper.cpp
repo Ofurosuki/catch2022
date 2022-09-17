@@ -6,7 +6,7 @@
 #include "math.h"
 
 Stepper::Stepper(PinName dir, PinName stp) : _dir(dir), _stp(stp) {
-  _dir = 0;  // 0で正転
+  _dir = 1;  // 1で正転
   _stp = 0;
   ticker.attach(callback(this, &Stepper::step_ctl), 100us);
 }
