@@ -67,6 +67,27 @@ int main() {
     stepper_r.reset(820);
   });
   sensor.registerCallback(0x04, [&](uint8_t, bool) { stepper_z.reset(0); });
+  bool solenoid_state[3];
+  /*
+  solenoid_state[0]=true; //1,　吸わない
+  solenoid_state[1]=true;
+  solenoid_state[2]=true;
+  gamepad.registerButtonCallback(0,Gamepad::ButtonMode::Down,[&](){
+    solenoid.driveSingle(0,solenoid_state[0]); //離す
+    solenoid_state[0]=!solenoid_state[0];}
+    );
+  */
+  gamepad.registerButtonCallback(0, Gamepad::ButtonMode::Down,
+                                 [&]() { solenoid.driveSingle(0, 1, 1000) });
+  gamepad.registerButtonCallback(1, Gamepad::ButtonMode::Down,
+                                 [&]() { solenoid.driveSingle(1, 1, 1000); });
+  gamepad.registerButtonCallback(2, Gamepad::ButtonMode::Down,
+                                 [&]() { solenoid.driveSingle(2, 1, 1000); });
+  gamepad.registerButtonCallback(3, Gamepad::ButtonMode::Down, [&]() {
+    solenoid.driveSingle(0, 1, 1000);
+    solenoid.driveSingle(1, 1, 1000);
+    solenoid.driveSingle(2, 1, 1000);
+  });
   stepper_r.set_theta_config(240.0f, 814.0f / 545.0f);
   stepper_r.set_config(5, 200, 5);
   stepper_theta.set_theta_config(0, 794.0f / 180.0f);
@@ -76,6 +97,11 @@ int main() {
   stepper_z.set_max_vel_diff(5);
 
   bool prevRight = false, prevLeft = false;
+
+  //吸盤が吸っている設定
+  solenoid.driveSingle(0, 0);
+  solenoid.driveSingle(1, 0);
+  solenoid.driveSingle(2, 0);
 
   while (true) {
     // printf("progresscnt:%f\n", stepper_theta.progress_cnt());
@@ -129,6 +155,40 @@ int main() {
     int StepVel1 = (gamepad.getAxis(1)) * 2;
     int StepVel2 = (gamepad.getAxis(2));
     int StepVel3 = (gamepad.getAxis(3)) * 5;
+
+    //同時にモーターを何個も動かすとき
+    if (abs(gamepad.getAxis(0)) >= 5 || abs(gamepad.getAxis(2)) >= 5) {
+      motor.driveVoltage(-DCVelocity);
+      stepper_r.rotate_vel(-StepVel1);
+      printf("%f\n", DCVelocity);
+      printf("%f\n", StepVel1);
+    } else {
+      motor.driveVoltage(0);
+      stepper_r.rotate_vel(0);
+    }
+
+    //θと上下は同時に動かない方がいいかな
+    if ((abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) &&
+        abs(gamepad.getAxis(2)) >= 5) {
+      // stepθを動かす
+      stepper_theta.rotate_vel(-StepVel2);
+      stepper_z.rotate_vel(0);
+      printf("theta\n");
+    } else if ((abs(joyDeg1) >= (M_PI / 12) * 5 &&
+                abs(joyDeg1) <= (M_PI / 12) * 7) &&
+               (abs(gamepad.getAxis(3)) >= 5)) {
+      // step上下に動かす
+      stepper_z.rotate_vel(-StepVel3);
+      stepper_theta.rotate_vel(0);
+      printf("updown\n");
+    } else {
+      // stepper止める
+      stepper_z.rotate_vel(0);
+      stepper_theta.rotate_vel(0);
+    }
+
+    //以下はそれぞれのモーターをばらばらに動かすとき
+    /*
     // Dead zone
     // stepXを動かす
     if ((abs(joyDeg0) <= M_PI / 12 || abs(joyDeg0) >= (M_PI / 12) * 11) &&
@@ -139,7 +199,7 @@ int main() {
       stepper_r.rotate_vel(0);
     }
     // Dead zone
-    // stepシータを動かす
+    // Rを動かす
     else if ((abs(joyDeg0) >= (M_PI / 12) * 5 &&
               abs(joyDeg0) <= (M_PI / 12) * 7) &&
              abs(gamepad.getAxis(1)) >= 5) {
@@ -160,7 +220,7 @@ int main() {
     }
 
     // Dead zone
-    // stepRを動かす
+    // stepθを動かす
     if ((abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) &&
         abs(gamepad.getAxis(2)) >= 5) {
       // stepRを動かす
@@ -187,9 +247,12 @@ int main() {
       while (true) {
         printf("pos: %f, %f%%\n", motor.getCurrentPosition(),
                motor.getPositionProgress() * 100);
-      } */
+      }
+
+    */
     //サーボモーターを動かす
     const float ServoVelocity = 50;
+    const float SlowServoVelocity = 25;
     if (gamepad.getButton(4) == 1) {
       //反時計回り
       //サーボの角度＝サーボの角度+5°
@@ -200,6 +263,20 @@ int main() {
       //時計回り
       printf("servo CW\n");
       servo.setVelocity(ServoVelocity);
+    } else {
+      servo.setVelocity(0);
+    }
+
+    if (gamepad.getButton(6) == 1) {
+      //反時計回り
+      //サーボの角度＝サーボの角度+5°
+      //みたいな感じで単発押しと長押しで角度調整できるようにする。
+      printf("servo slow CCW\n");
+      servo.setVelocity(-SlowServoVelocity);
+    } else if (gamepad.getButton(7) == 1) {
+      //時計回り
+      printf("servo slow CW\n");
+      servo.setVelocity(SlowServoVelocity);
     } else {
       servo.setVelocity(0);
     }
