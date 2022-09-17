@@ -165,9 +165,11 @@ void initialize(Team team) {
   }
   if (team == Red) {
     stepper_theta.rotate(-180);
+    ThisThread::sleep_for(1s);
     while (stepper_theta.progress_cnt() < 0.99) {
+      ThisThread::sleep_for(100ms);
     }
-    stepper_theta.reset(180);
+    stepper_theta.reset(794.0f / 180.0f * 180);
   }
 }
 
