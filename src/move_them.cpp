@@ -83,11 +83,13 @@ void release_jaga() {
 void take_down(float z) {
   stepper_z.rotate(z);
   while (stepper_z.progress_cnt() < 1.0f) {
+    ThisThread::sleep_for(100ms);
   }
 }
 void take_up() {
   stepper_z.rotate_vel(15);
-  while (stepper_z.progress_cnt() < 1.0f) {
+  while (!sensor.getState(4)) {
+    ThisThread::sleep_for(100ms);
   }
 }
 
