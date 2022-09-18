@@ -17,9 +17,9 @@ int Gamepad::getHat(uint8_t num) {
   return 0;
 }
 
-void Gamepad::registerButtonCallback(uint8_t num, ButtonMode mode,
-                                     Callback<void()> callback) {
-  buttonCallbacks[num][mode] = callback;
+void Gamepad::registerButtonCallback(uint8_t num, Callback<void()> callback) {
+  if (num >= 12) return;
+  buttonCallbacks[num] = callback;
 }
 
 void Gamepad::pcCallback(uint8_t* data, size_t size) {
@@ -36,13 +36,8 @@ void Gamepad::pcCallback(uint8_t* data, size_t size) {
   for (size_t i = 0; i < buttonNum; i++) {
     bool prevButton = button[i];
     button[i] = data[6 + i / 8] & (1 << (i % 8));
-    // if (button[i] != prevButton) {
-    //   if (buttonCallbacks[i][Both]) buttonCallbacks[i][Both]();
-    //   if (button[i]) {
-    //     if (buttonCallbacks[i][Down]) buttonCallbacks[i][Down]();
-    //   } else {
-    //     if (buttonCallbacks[i][Up]) buttonCallbacks[i][Up]();
-    //   }
-    // }
+    if (button[i] != prevButton) {
+      if (buttonCallbacks[i]) buttonCallbacks[i]();
+    }
   }
 }

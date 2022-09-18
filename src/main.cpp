@@ -55,6 +55,12 @@ bool solenoid_state_2 = 0;
 int main() {
   manager.begin();
   pcConnector.registerCallback(0x01, callback(&gamepad, &Gamepad::pcCallback));
+  pcConnector.registerCallback(0x03, [&](uint8_t* data, size_t size) {
+    if (size <= 0 || size > 3) return;
+    solenoid.driveSingle(0, !data[0]);
+    solenoid.driveSingle(1, !data[1]);
+    solenoid.driveSingle(2, !data[2]);
+  });
   rotate_stepper stepper_theta(DIR0, STP0);
   rotate_stepper stepper_r(DIR1, STP1);
   rotate_stepper stepper_z(DIR2, STP2);
@@ -76,29 +82,26 @@ int main() {
   solenoid_state[0]=true; //1,　吸わない
   solenoid_state[1]=true;
   solenoid_state[2]=true;
-  gamepad.registerButtonCallback(0,Gamepad::ButtonMode::Down,[&](){
+  gamepad.registerButtonCallback(0,[&](){
     solenoid.driveSingle(0,solenoid_state[0]); //離す
     solenoid_state[0]=!solenoid_state[0];}
     );
   */
-  gamepad.registerButtonCallback(0, Gamepad::ButtonMode::Down,
-                                 [&]() { solenoid.driveSingle(0, 1, 1000) });
-  gamepad.registerButtonCallback(1, Gamepad::ButtonMode::Down,
-                                 [&]() { solenoid.driveSingle(1, 1, 1000); });
-  gamepad.registerButtonCallback(2, Gamepad::ButtonMode::Down,
-                                 [&]() { solenoid.driveSingle(2, 1, 1000); });
-  gamepad.registerButtonCallback(3, Gamepad::ButtonMode::Down, [&]() {
-    solenoid.driveSingle(0, 1, 1000);
-    solenoid.driveSingle(1, 1, 1000);
-    solenoid.driveSingle(2, 1, 1000);
-  });
+  // gamepad.registerButtonCallback(0, [&]() { solenoid.driveSingle(0, 1); });
+  // gamepad.registerButtonCallback(1, [&]() { solenoid.driveSingle(1, 1); });
+  // gamepad.registerButtonCallback(2, [&]() { solenoid.driveSingle(2, 1); });
+  // gamepad.registerButtonCallback(3, [&]() {
+  //   solenoid.driveSingle(0, 1);
+  //   solenoid.driveSingle(1, 1);
+  //   solenoid.driveSingle(2, 1);
+  // });
   stepper_r.set_theta_config(240.0f, 814.0f / 545.0f);
   stepper_r.set_config(5, 200, 5);
   stepper_theta.set_theta_config(0, 794.0f / 180.0f);
   stepper_theta.set_config(5, 100, 5);
-  stepper_theta.set_max_vel_diff(1.5);
-  stepper_r.set_max_vel_diff(3);
-  stepper_z.set_max_vel_diff(5);
+  stepper_theta.set_max_vel_diff(3);
+  stepper_r.set_max_vel_diff(20);
+  stepper_z.set_max_vel_diff(20);
 
   bool prevRight = false, prevLeft = false;
 
@@ -109,20 +112,19 @@ int main() {
 
   while (true) {
     // printf("progresscnt:%f\n", stepper_theta.progress_cnt());
-    // printf("%d, %d, %d, %d", gamepad.getAxis(0), gamepad.getAxis(1),
-    //        gamepad.getAxis(2), gamepad.getAxis(3));
-    // printf(":%d, %d", gamepad.getHat(0), gamepad.getHat(1));
-    // printf(":%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d\n", gamepad.getButton(0),
-    //        gamepad.getButton(1), gamepad.getButton(2), gamepad.getButton(3),
-    //        gamepad.getButton(4), gamepad.getButton(5), gamepad.getButton(6),
-    //        gamepad.getButton(7), gamepad.getButton(8), gamepad.getButton(9),
-    //        gamepad.getButton(10), gamepad.getButton(11),
-    //        gamepad.getButton(12), gamepad.getButton(13),
-    //        gamepad.getButton(14), gamepad.getButton(15),
-    //        gamepad.getButton(16), gamepad.getButton(17));
-    printf("%f, %d, %d, %d\n", motor.getCurrentPosition(),
-           stepper_theta.get_global_cnt(), stepper_r.get_global_cnt(),
-           stepper_z.get_global_cnt());
+    printf("%d, %d, %d, %d", gamepad.getAxis(0), gamepad.getAxis(1),
+           gamepad.getAxis(2), gamepad.getAxis(3));
+    printf(":%d, %d", gamepad.getHat(0), gamepad.getHat(1));
+    printf(":%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d\n", gamepad.getButton(0),
+           gamepad.getButton(1), gamepad.getButton(2), gamepad.getButton(3),
+           gamepad.getButton(4), gamepad.getButton(5), gamepad.getButton(6),
+           gamepad.getButton(7), gamepad.getButton(8), gamepad.getButton(9),
+           gamepad.getButton(10), gamepad.getButton(11), gamepad.getButton(12),
+           gamepad.getButton(13), gamepad.getButton(14), gamepad.getButton(15),
+           gamepad.getButton(16), gamepad.getButton(17));
+    // printf("%f, %d, %d, %d\n", motor.getCurrentPosition(),
+    //        stepper_theta.get_global_cnt(), stepper_r.get_global_cnt(),
+    //        stepper_z.get_global_cnt());
     ThisThread::sleep_for(10ms);
 
     /*
@@ -155,39 +157,40 @@ int main() {
     // solenoid.driveSingle(1, gamepad.getButton(1));
     // solenoid.driveSingle(2, gamepad.getButton(2));
     //以下でステッパーを動かすためのswitch文の条件を決める
-    const float DCVelocity = (float)gamepad.getAxis(0) / 200;
+    const float DCVelocity = (float)gamepad.getAxis(0) / 150;
     int StepVel1 = (gamepad.getAxis(1)) * 2;
     int StepVel2 = (gamepad.getAxis(2));
     int StepVel3 = (gamepad.getAxis(3)) * 5;
 
     //同時にモーターを何個も動かすとき
-    if (abs(gamepad.getAxis(0)) >= 5 || abs(gamepad.getAxis(2)) >= 5) {
+    if (abs(gamepad.getAxis(0)) >= 15) {
       motor.driveVoltage(-DCVelocity);
-      stepper_r.rotate_vel(-StepVel1);
       printf("%f\n", DCVelocity);
-      printf("%f\n", StepVel1);
     } else {
       motor.driveVoltage(0);
+    }
+
+    if ((abs(gamepad.getAxis(1)) >= 5)) {
+      // step上下に動かす
+      stepper_z.rotate_vel(-StepVel1);
+      printf("updown\n");
+    } else {
+      stepper_z.rotate_vel(0);
+    }
+    if (abs(gamepad.getAxis(3)) >= 5) {
+      stepper_r.rotate_vel(gamepad.getButton(11) ? -StepVel3 / 3 : -StepVel3);
+      printf("%f\n", gamepad.getButton(11) ? -StepVel3 / 3 : -StepVel3);
+    } else {
       stepper_r.rotate_vel(0);
     }
 
     //θと上下は同時に動かない方がいいかな
-    if ((abs(joyDeg1) <= M_PI / 12 || abs(joyDeg1) >= (M_PI / 12) * 11) &&
-        abs(gamepad.getAxis(2)) >= 5) {
+    if (abs(gamepad.getAxis(2)) >= 5) {
       // stepθを動かす
-      stepper_theta.rotate_vel(-StepVel2);
-      stepper_z.rotate_vel(0);
+      stepper_theta.rotate_vel(gamepad.getButton(11) ? -StepVel2 / 3
+                                                     : -StepVel2);
       printf("theta\n");
-    } else if ((abs(joyDeg1) >= (M_PI / 12) * 5 &&
-                abs(joyDeg1) <= (M_PI / 12) * 7) &&
-               (abs(gamepad.getAxis(3)) >= 5)) {
-      // step上下に動かす
-      stepper_z.rotate_vel(-StepVel3);
-      stepper_theta.rotate_vel(0);
-      printf("updown\n");
     } else {
-      // stepper止める
-      stepper_z.rotate_vel(0);
       stepper_theta.rotate_vel(0);
     }
 
@@ -255,7 +258,7 @@ int main() {
 
     */
     //サーボモーターを動かす
-    const float ServoVelocity = 50;
+    const float ServoVelocity = 75;
     const float SlowServoVelocity = 25;
     if (gamepad.getButton(4) == 1) {
       //反時計回り
@@ -267,11 +270,7 @@ int main() {
       //時計回り
       printf("servo CW\n");
       servo.setVelocity(ServoVelocity);
-    } else {
-      servo.setVelocity(0);
-    }
-
-    if (gamepad.getButton(6) == 1) {
+    } else if (gamepad.getButton(6) == 1) {
       //反時計回り
       //サーボの角度＝サーボの角度+5°
       //みたいな感じで単発押しと長押しで角度調整できるようにする。
@@ -288,15 +287,28 @@ int main() {
     if (gamepad.getHat(0) == -1) {
       solenoid.driveSingle(0, 0);
     } else if (gamepad.getHat(0) == 1) {
-      solenoid.driveSingle(1, 0);
-    } else if (gamepad.getHat(1) == -1) {
       solenoid.driveSingle(2, 0);
+    } else if (gamepad.getHat(1) == -1) {
+      solenoid.driveSingle(1, 0);
     } else if (gamepad.getHat(1) == 1) {
       solenoid.driveSingle(0, 0);
       solenoid.driveSingle(1, 0);
       solenoid.driveSingle(2, 0);
-    } else {
-      continue;
+    }
+
+    if (gamepad.getButton(0)) {
+      solenoid.driveSingle(0, 1);
+    }
+    if (gamepad.getButton(1)) {
+      solenoid.driveSingle(1, 1);
+    }
+    if (gamepad.getButton(2)) {
+      solenoid.driveSingle(2, 1);
+    }
+    if (gamepad.getButton(3)) {
+      solenoid.driveSingle(0, 1);
+      solenoid.driveSingle(1, 1);
+      solenoid.driveSingle(2, 1);
     }
   }
 }
